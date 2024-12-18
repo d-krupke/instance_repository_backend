@@ -28,11 +28,32 @@ class ProblemInfo(BaseModel):
     instance_model: Type[BaseModel] = Field(
         ..., description="The Pydantic model of the instance"
     )
-    solution_model: Type[BaseModel]|None = Field(
+    solution_model: Type[BaseModel] | None = Field(
         default=None, description="The Pydantic model of the solution"
     )
-    path: Path = Field(
-        description="The path to the directory of the problem.",
+    assets_root: Path = Field(
+        ...,
+        description="The path to the directory of the assets for storage.",
+    )
+    assets_url_root: str = Field(
+        ...,
+        description="The URL root of the assets via which external users can access the assets.",
+    )
+    instances_root: Path = Field(
+        ...,
+        description="The path to the directory of the instances for storage.",
+    )
+    instances_url_root: str = Field(
+        ...,
+        description="The URL root of the instances via which external users can access the instances.",
+    )
+    solutions_root: Path = Field(
+        ...,
+        description="The path to the directory of the solutions for storage.",
+    )
+    solutions_url_root: str = Field(
+        ...,
+        description="The URL root of the solutions via which external users can access the solutions.",
     )
     postfix_query: str = Field(
         default="",
@@ -131,7 +152,12 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
         )
     # Create the ProblemInfo instance
     problem_info = ProblemInfo(
-        path=path,
+        instances_root=path / "instances",
+        instances_url_root="/instances",
+        solutions_root=path / "solutions",
+        solutions_url_root="/solutions",
+        assets_root=path / "assets",
+        assets_url_root="/assets",
         problem_uid=problem_uid,
         instance_model=instance_schema,
         range_filters=range_filters,

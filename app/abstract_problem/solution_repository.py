@@ -8,7 +8,7 @@ class SolutionRepository:
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
         self.file_system = LocalFileSystemWithCompression(
-            problem_info.path / "solutions"
+            problem_info.solutions_root
         )
         if self.problem_info.solution_model is None:
             raise ValueError("The problem does not have a solution model")
@@ -83,23 +83,11 @@ class SolutionRepository:
         List the solution uids of the instance with the given instance_uid.
         """
         check_uid_pattern(instance_uid)
-        uids = [
-            str(p.relative_to(self.problem_info.path / "solutions"))[: -len(".json.xz")]
-            for p in self.problem_info.path.glob(
-                f"solutions/{instance_uid}/**/*.json.xz"
-            )
-        ]
-        uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
+        uids = self.file_system.all_uids_beginning_with(instance_uid)
         return uids
 
     def list_all_solution_uids(self) -> list[str]:
         """
         List all the solution uids in the root directory.
         """
-        suffix = ".json.xz"
-        uids = [
-            str(p.relative_to(self.problem_info.path / "solutions"))[: -len(suffix)]
-            for p in self.problem_info.path.glob(f"solutions/**/*{suffix}")
-        ]
-        uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
-        return uids
+        return self.file_system.all_uids()

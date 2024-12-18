@@ -79,6 +79,16 @@ class LocalFileSystemWithCompression:
         uids = [str(p.relative_to(self.root))[:-len(suffix)] for p in self.root.glob(f"**/*{suffix}")]
         uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
         return uids
+    
+    def all_uids_beginning_with(self, prefix: str) -> list[str]:
+        """
+        Get all the uids that start with the given prefix.
+        """
+        suffix = ".json.xz"
+        prefix = prefix.rstrip("/")
+        uids = [str(p.relative_to(self.root))[:-len(suffix)] for p in self.root.glob(f"{prefix}/**/*{suffix}")]
+        uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
+        return uids
 
 class InstanceRepository(Generic[T]):
     """
@@ -89,15 +99,14 @@ class InstanceRepository(Generic[T]):
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
         self.instance_model: Type[T] = problem_info.instance_model # type: ignore
-        self.file_system = LocalFileSystemWithCompression(problem_info.path/"instances")
+        self.file_system = LocalFileSystemWithCompression(problem_info.instances_root)
 
     def exists(self, instance_uid: str) -> bool:
         """
         Check if an instance with the given instance_uid exists.
         """
         check_uid_pattern(instance_uid)
-        instance_path = self.problem_info.path / "instances" / f"{instance_uid}.json.xz"
-        return instance_path.exists()
+        return self.file_system.exists(instance_uid)
 
     def read_instance(self, instance_uid: str) -> T:
         """

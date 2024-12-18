@@ -137,7 +137,26 @@ def build_routes_for_problem(
     ):
         asset_repository.add(asset_class, instance_uid, asset)
 
+    @router.get("/assets/{instance_uid}", response_model=dict[str, str])
+    def get_assets(instance_uid: str):
+        available = asset_repository.available_assets_for_instance(instance_uid)
+        return {asset_class: f"{problem_info.assets_url_root}{path}" for asset_class, path in available.items()}
+    
+    @router.delete("/assets/{assets_class}/{instance_uid}")
+    def delete_assets(
+        asset_class: str,
+        instance_uid: str,
+        api_key: str = Depends(verify_api_key),
+    ):
+        asset_repository.delete_assets(instance_uid, asset_class=asset_class)
 
+    @router.get("/assets", response_model=dict[str, dict[str, str]])
+    def get_all_assets(instance_uids: list[str]):
+        result = {}
+        for instance_uid in instance_uids:
+            available = asset_repository.available_assets_for_instance(instance_uid)
+            result[instance_uid] = {asset_class: f"{problem_info.assets_url_root}{path}" for asset_class, path in available.items()}
+        return result
 
     if solution_repository is not None:
         logging.info("Building routes for solutions")
