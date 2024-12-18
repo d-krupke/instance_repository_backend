@@ -1,3 +1,4 @@
+import logging
 import lzma
 import math
 from typing import Type
@@ -69,13 +70,14 @@ class InstanceIndex:
         class_dict[problem_info.uid_attribute] = sqlmodel.Field(
             ..., primary_key=True, description="The unique identifier of the instance"
         )
+        logging.info(f"Added field '{problem_info.uid_attribute}' as primary key to the index table")
         # Create other fields
         for field_name in set(
             problem_info.range_filters
             + problem_info.boolean_filters
             + problem_info.sort_fields
             + problem_info.display_fields
-        ):
+        )-{problem_info.uid_attribute}:
             annotations[field_name] = problem_info.instance_model.__annotations__[
                 field_name
             ]
@@ -85,6 +87,7 @@ class InstanceIndex:
                     field_name
                 ].description,
             )
+            logging.info(f"Added field '{field_name}' to the index table")
         class_dict["__annotations__"] = annotations  # type: ignore
 
         # Use the SQLModel metaclass to create the class and pass table=True
@@ -92,6 +95,12 @@ class InstanceIndex:
             class_name, (sqlmodel.SQLModel,), class_dict, table=True
         )
         return model_class  # type: ignore
+    
+    def exists(self, instance_uid: str, session: sqlmodel.Session) -> bool:
+        """
+        Check if an instance with the given instance_uid exists.
+        """
+        return session.get(self.IndexTable, instance_uid) is not None
     
     def _generate_paginated_response_model(self) -> Type[BaseModel]:
         """
@@ -256,6 +265,7 @@ class InstanceIndex:
         """
         statement = sqlmodel.select(getattr(self.IndexTable, self.problem_info.uid_attribute))
         return list(session.exec(statement).all())
+    
 
     def get_range_query_bounds(
         self, session: sqlmodel.Session
@@ -296,7 +306,7 @@ class InstanceIndex:
         # Add the search field
         if query_schema.search is not None:
             statement = statement.filter(
-                self.IndexTable.instance_uid.contains(query_schema.search)  # type: ignore
+                getattr(self.IndexTable, self.problem_info.uid_attribute).contains(query_schema.search)
             )
 
         # Add the sort field

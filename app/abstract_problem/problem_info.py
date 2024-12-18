@@ -28,6 +28,9 @@ class ProblemInfo(BaseModel):
     instance_model: Type[BaseModel] = Field(
         ..., description="The Pydantic model of the instance"
     )
+    solution_model: Type[BaseModel]|None = Field(
+        default=None, description="The Pydantic model of the solution"
+    )
     path: Path = Field(
         description="The path to the directory of the problem.",
     )
@@ -46,6 +49,18 @@ class ProblemInfo(BaseModel):
     assets: dict[str, str] = Field(
         default_factory=dict,
         description="The asset classes and their extensions. The keys are the asset classes, and the values are the extensions, e.g., {'image': 'png'}.",
+    )
+    solution_index_field: str = Field(
+        default="solution_uid",
+        description="The attribute of the solution that contains the unique identifier",
+    )
+    solution_display_fields: list[str] = Field(
+        default_factory=list,
+        description="The fields that should be displayed in an overview of the solutions and, thus, must be quick to access.",
+    )
+    solution_sort_by: list[str] = Field(
+        default_factory=list,
+        description="The fields will be used to sort the solution by quality. Add a `-` in front in case the field should be sorted in descending order.",
     )
 
 
@@ -78,6 +93,9 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
     instance_schema = problem_vars.get("INSTANCE_SCHEMA")
     if instance_schema is None:
         raise ValueError("No INSTANCE_SCHEMA found in the file")
+    solution_schema = problem_vars.get("SOLUTION_SCHEMA", None)
+    solution_sort_attributes = problem_vars.get("SOLUTION_SORT_ATTRIBUTE", [])
+    solution_display_fields = problem_vars.get("SOLUTION_DISPLAY_FIELDS", [])
     # The range filters should be in `RANGE_FILTERS`
     range_filters = problem_vars.get("RANGE_FILTERS")
     if range_filters is None:
@@ -124,5 +142,8 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
         postfix_query_leq=postfix_query_leq,
         postfix_query_geq=postfix_query_geq,
         assets=assets,
+        solution_model=solution_schema,
+        solution_sort_by=solution_sort_attributes,
+        solution_display_fields=solution_display_fields,
     )
     return problem_info

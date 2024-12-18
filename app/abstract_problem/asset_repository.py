@@ -1,6 +1,6 @@
 
 from pathlib import Path
-from .instance_repository import check_instance_uid
+from .instance_repository import check_uid_pattern
 from .problem_info import ProblemInfo
 
 
@@ -12,7 +12,7 @@ class AssetRepository:
         """
         Add a binary asset to the repository.
         """
-        check_instance_uid(instance_uid)
+        check_uid_pattern(instance_uid)
         extension = self.problem_info.assets[asset_class]
         asset_path = self.problem_info.path / "assets" / asset_class / f"{instance_uid}.{extension}"
         asset_path.parent.mkdir(parents=True, exist_ok=True)
@@ -26,7 +26,7 @@ class AssetRepository:
         """
         Delete the assets with the given instance_uid.
         """
-        check_instance_uid(instance_uid)
+        check_uid_pattern(instance_uid)
         asset_dir = self.problem_info.path / "assets"
         if not asset_dir.exists():
             return
