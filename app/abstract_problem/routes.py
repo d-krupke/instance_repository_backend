@@ -40,6 +40,8 @@ class PaginatedRequest(BaseModel):
     offset: int = Field(default=0, title="The offset of the current page")
     limit: int = Field(default=100, title="The limit of the current page")
 
+class BatchedAssetsRequest(BaseModel):
+    instance_uids: list[str] = Field(..., title="The unique identifiers of the instances")
 
 def build_routes_for_problem(
     app: FastAPI,
@@ -139,6 +141,10 @@ def build_routes_for_problem(
 
     @router.get("/assets/{instance_uid}", response_model=dict[str, str])
     def get_assets(instance_uid: str):
+        """
+        Return the available assets for the instance with the given instance_uid.
+        The keys are the asset classes, and the values are the paths to the assets.
+        """
         available = asset_repository.available_assets_for_instance(instance_uid)
         return {asset_class: f"{problem_info.assets_url_root}{path}" for asset_class, path in available.items()}
     
@@ -148,12 +154,20 @@ def build_routes_for_problem(
         instance_uid: str,
         api_key: str = Depends(verify_api_key),
     ):
+        """
+        Delete the asset with the given instance_uid and asset_class, e.g., /assets/thumbnail/instance123
+        to delete the thumbnail of the instance with the uid instance123.
+        """
         asset_repository.delete_assets(instance_uid, asset_class=asset_class)
 
     @router.get("/assets", response_model=dict[str, dict[str, str]])
-    def get_all_assets(instance_uids: list[str]):
+    def get_all_assets(request: BatchedAssetsRequest):
+        """
+        Return the available assets for the instances with the given instance_uids.
+        The response is a dictionary with the instance_uids as keys and a dictionary of the asset classes and their paths as values.
+        """
         result = {}
-        for instance_uid in instance_uids:
+        for instance_uid in request.instance_uids:
             available = asset_repository.available_assets_for_instance(instance_uid)
             result[instance_uid] = {asset_class: f"{problem_info.assets_url_root}{path}" for asset_class, path in available.items()}
         return result
