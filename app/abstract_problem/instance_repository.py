@@ -6,7 +6,8 @@ import lzma
 from .problem_info import ProblemInfo
 
 # Define a generic type variable for the instance model
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
+
 
 def check_uid_pattern(instance_uid: str, fail: bool = True) -> bool:
     """
@@ -24,6 +25,7 @@ def check_uid_pattern(instance_uid: str, fail: bool = True) -> bool:
         )
     return True
 
+
 class LocalFileSystemWithCompression:
     """
     This class saves and loads pydantic models to and from the local file system with compression.
@@ -37,7 +39,7 @@ class LocalFileSystemWithCompression:
         """
         Check if a file with the given uid exists.
         """
-        path = (self.root/uid).with_suffix(".json.xz")
+        path = (self.root / uid).with_suffix(".json.xz")
         return path.exists()
 
     def save(self, data: BaseModel, uid: str, exists_ok: bool = False) -> Path:
@@ -45,29 +47,29 @@ class LocalFileSystemWithCompression:
         Save the data to the given path.
         """
         path = Path(uid)
-        path = self.root/path.with_suffix(".json.xz")
+        path = self.root / path.with_suffix(".json.xz")
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists() and not exists_ok:
             raise ValueError(f"The file {uid} already exists")
         with lzma.open(path, "wt") as file:
             file.write(data.model_dump_json())
         return path.relative_to(self.root)
-    
+
     def load(self, model: Type[T], uid: str) -> T:
         """
         Load the data from the given path.
         """
-        path = (self.root/uid).with_suffix(".json.xz")
+        path = (self.root / uid).with_suffix(".json.xz")
         if not path.exists():
             raise KeyError(f"No file found for {uid}")
         with lzma.open(path, "rt") as file:
             return model.model_validate_json(file.read())
-        
+
     def delete(self, uid: str):
         """
         Delete the file with the given uid.
         """
-        path = (self.root/uid).with_suffix(".json.xz")
+        path = (self.root / uid).with_suffix(".json.xz")
         if path.exists():
             path.unlink()
 
@@ -76,19 +78,26 @@ class LocalFileSystemWithCompression:
         Get all the uids in the root directory.
         """
         suffix = ".json.xz"
-        uids = [str(p.relative_to(self.root))[:-len(suffix)] for p in self.root.glob(f"**/*{suffix}")]
+        uids = [
+            str(p.relative_to(self.root))[: -len(suffix)]
+            for p in self.root.glob(f"**/*{suffix}")
+        ]
         uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
         return uids
-    
+
     def all_uids_beginning_with(self, prefix: str) -> list[str]:
         """
         Get all the uids that start with the given prefix.
         """
         suffix = ".json.xz"
         prefix = prefix.rstrip("/")
-        uids = [str(p.relative_to(self.root))[:-len(suffix)] for p in self.root.glob(f"{prefix}/**/*{suffix}")]
+        uids = [
+            str(p.relative_to(self.root))[: -len(suffix)]
+            for p in self.root.glob(f"{prefix}/**/*{suffix}")
+        ]
         uids = [uid for uid in uids if check_uid_pattern(uid, fail=False)]
         return uids
+
 
 class InstanceRepository(Generic[T]):
     """
@@ -98,7 +107,7 @@ class InstanceRepository(Generic[T]):
 
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
-        self.instance_model: Type[T] = problem_info.instance_model # type: ignore
+        self.instance_model: Type[T] = problem_info.instance_model  # type: ignore
         self.file_system = LocalFileSystemWithCompression(problem_info.instances_root)
 
     def exists(self, instance_uid: str) -> bool:

@@ -1,13 +1,13 @@
 import logging
-import lzma
+
 import math
-from typing import Type
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Type
+from typing import Any, Type
 import sqlmodel
 from sqlmodel.main import SQLModelMetaclass
 
 from .problem_info import ProblemInfo
+
 
 class RangeQueryBounds(sqlmodel.SQLModel, table=True):
     """
@@ -17,8 +17,8 @@ class RangeQueryBounds(sqlmodel.SQLModel, table=True):
 
     problem_uid: str = sqlmodel.Field(..., primary_key=True)
     field_name: str = sqlmodel.Field(..., primary_key=True)
-    min_val: float|None = sqlmodel.Field(default=None)
-    max_val: float|None = sqlmodel.Field(default=None)
+    min_val: float | None = sqlmodel.Field(default=None)
+    max_val: float | None = sqlmodel.Field(default=None)
 
     def update(self, val: float) -> bool:
         """
@@ -28,7 +28,7 @@ class RangeQueryBounds(sqlmodel.SQLModel, table=True):
         # don't do anything if it is not a number
         if not math.isfinite(val):
             return False
-        
+
         if self.min_val is None or self.max_val is None:
             self.min_val = val
             self.max_val = val
@@ -42,13 +42,17 @@ class RangeQueryBounds(sqlmodel.SQLModel, table=True):
             self.max_val = val
             changed = True
         return changed
-    
+
+
 class InstanceIndex:
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
         self.IndexTable = self._generate_problem_instance_index_table(problem_info)
         self.QuerySchema = self._generate_query_schema(problem_info)
         self.PaginatedResponse = self._generate_paginated_response_model()
+        logging.info(
+            "InstanceIndex initialized with problem_uid=%s", problem_info.problem_uid
+        )
 
     def _generate_problem_instance_index_table(
         self,
@@ -63,21 +67,33 @@ class InstanceIndex:
         class_dict = {
             "__tablename__": class_name,
         }
-        # create index field
-        annotations[problem_info.uid_attribute] = (
-            problem_info.instance_model.__annotations__[problem_info.uid_attribute]
+        logging.debug(
+            "Generating index table class with name=%s for problem_uid=%s",
+            class_name,
+            problem_info.problem_uid,
         )
-        class_dict[problem_info.uid_attribute] = sqlmodel.Field(
+
+        # Create index field
+        uid_attribute = problem_info.uid_attribute
+        annotations[uid_attribute] = problem_info.instance_model.__annotations__[
+            uid_attribute
+        ]
+        class_dict[uid_attribute] = sqlmodel.Field(
             ..., primary_key=True, description="The unique identifier of the instance"
         )
-        logging.info(f"Added field '{problem_info.uid_attribute}' as primary key to the index table")
+        logging.info(
+            "Added primary key field '%s' to the index table for problem_uid=%s",
+            uid_attribute,
+            problem_info.problem_uid,
+        )
+
         # Create other fields
         for field_name in set(
             problem_info.range_filters
             + problem_info.boolean_filters
             + problem_info.sort_fields
             + problem_info.display_fields
-        )-{problem_info.uid_attribute}:
+        ) - {uid_attribute}:
             annotations[field_name] = problem_info.instance_model.__annotations__[
                 field_name
             ]
@@ -87,21 +103,35 @@ class InstanceIndex:
                     field_name
                 ].description,
             )
-            logging.info(f"Added field '{field_name}' to the index table")
+            logging.info(
+                "Added field '%s' to the index table for problem_uid=%s",
+                field_name,
+                problem_info.problem_uid,
+            )
+
         class_dict["__annotations__"] = annotations  # type: ignore
 
         # Use the SQLModel metaclass to create the class and pass table=True
         model_class = SQLModelMetaclass(
             class_name, (sqlmodel.SQLModel,), class_dict, table=True
         )
+        logging.debug(
+            "Index table class '%s' created successfully for problem_uid=%s",
+            class_name,
+            problem_info.problem_uid,
+        )
         return model_class  # type: ignore
-    
+
     def exists(self, instance_uid: str, session: sqlmodel.Session) -> bool:
         """
         Check if an instance with the given instance_uid exists.
         """
-        return session.get(self.IndexTable, instance_uid) is not None
-    
+        exists = session.get(self.IndexTable, instance_uid) is not None
+        logging.debug(
+            "Checked existence of instance with uid=%s: %s", instance_uid, exists
+        )
+        return exists
+
     def _generate_paginated_response_model(self) -> Type[BaseModel]:
         """
         Generate a response model for paginated responses.
@@ -120,14 +150,31 @@ class InstanceIndex:
             "total": int,
         }
         class_dict["__annotations__"] = class_annotations
+        logging.debug(
+            "Paginated response model '%s' generated successfully for problem_uid=%s",
+            class_name,
+            self.problem_info.problem_uid,
+        )
         return type(class_name, (BaseModel,), class_dict)  # type: ignore
 
-    
-    def get_instance_metadata(self, instance_uid: str, session: sqlmodel.Session) -> sqlmodel.SQLModel|None:
+    def get_instance_metadata(
+        self, instance_uid: str, session: sqlmodel.Session
+    ) -> sqlmodel.SQLModel | None:
         """
         Get the instance info from the index table.
         """
-        return session.get(self.IndexTable, instance_uid)
+        instance = session.get(self.IndexTable, instance_uid)
+        if instance:
+            logging.debug(
+                "Retrieved metadata for instance with uid=%s from the index table",
+                instance_uid,
+            )
+        else:
+            logging.warning(
+                "No metadata found for instance with uid=%s in the index table",
+                instance_uid,
+            )
+        return instance
 
     def _generate_query_schema(self, problem_info: ProblemInfo) -> Type[BaseModel]:
         """
@@ -138,66 +185,98 @@ class InstanceIndex:
         annotations = {}
         class_name = f"{problem_info.problem_uid}_query"
         class_dict = {}
+        logging.debug(
+            "Generating query schema class '%s' for problem_uid=%s",
+            class_name,
+            problem_info.problem_uid,
+        )
+
         # Add the range filters
         for field_name in problem_info.range_filters:
             min_field_name = f"{field_name}{problem_info.postfix_query}{problem_info.postfix_query_geq}"
-            class_dict[min_field_name] = Field(  # type: ignore
-                default=None,
-                description=problem_info.instance_model.model_fields[
-                    field_name
-                ].description,
-            )
-            annotations[min_field_name] = float|None
             max_field_name = f"{field_name}{problem_info.postfix_query}{problem_info.postfix_query_leq}"
-            class_dict[max_field_name] = Field(  # type: ignore
+            class_dict[min_field_name] = Field(
                 default=None,
                 description=problem_info.instance_model.model_fields[
                     field_name
                 ].description,
             )
-            annotations[max_field_name] = float|None
+            annotations[min_field_name] = float | None
+            class_dict[max_field_name] = Field(
+                default=None,
+                description=problem_info.instance_model.model_fields[
+                    field_name
+                ].description,
+            )
+            annotations[max_field_name] = float | None
+            logging.debug(
+                "Added range filter fields '%s' and '%s' for problem_uid=%s",
+                min_field_name,
+                max_field_name,
+                problem_info.problem_uid,
+            )
 
         # Add the boolean filters
         for field_name in problem_info.boolean_filters:
             field_name_ = f"{field_name}{problem_info.postfix_query}"
-            class_dict[field_name_] = Field(  # type: ignore
+            class_dict[field_name_] = Field(
                 default=None,
                 description=problem_info.instance_model.model_fields[
                     field_name
                 ].description,
             )
-            annotations[field_name] = bool | None
+            annotations[field_name_] = bool | None
+            logging.debug(
+                "Added boolean filter field '%s' for problem_uid=%s",
+                field_name_,
+                problem_info.problem_uid,
+            )
 
         # Add the sort fields
         assert "sort_by" not in annotations, "`sort_by` is a reserved field name"
         annotations["sort_by"] = str | None
-        class_dict["sort_by"] = Field(  # type: ignore
+        class_dict["sort_by"] = Field(
             None,
-            description=f"The field to sort the instances by. Allowed values: {', '.join(problem_info.sort_fields)}, {', '.join(["-"+f for f in problem_info.sort_fields])}",
+            description=(
+                f"The field to sort the instances by. Allowed values: "
+                f"{', '.join(problem_info.sort_fields)}, "
+                f"{', '.join(['-' + f for f in problem_info.sort_fields])}"
+            ),
+        )
+        logging.debug(
+            "Added 'sort_by' field for problem_uid=%s", problem_info.problem_uid
         )
 
         # Add the search field
         assert "search" not in annotations, "`search` is a reserved field name"
-        class_dict["search"] = Field(  # type: ignore
+        class_dict["search"] = Field(
             None, description="A keyword to search for in the instances"
         )
         annotations["search"] = str | None
-
-        # pagination
-        assert "offset" not in annotations, "`offset` is a reserved field name"
-        class_dict["offset"] = Field(  # type: ignore
-            0, description="The offset of the current page"
+        logging.debug(
+            "Added 'search' field for problem_uid=%s", problem_info.problem_uid
         )
+
+        # Pagination
+        assert "offset" not in annotations, "`offset` is a reserved field name"
+        class_dict["offset"] = Field(0, description="The offset of the current page")
         annotations["offset"] = int
         assert "limit" not in annotations, "`limit` is a reserved field name"
-        class_dict["limit"] = Field(  # type: ignore
-            100, description="The limit of the current page"
-        )
+        class_dict["limit"] = Field(100, description="The limit of the current page")
         annotations["limit"] = int
+        logging.debug(
+            "Added pagination fields 'offset' and 'limit' for problem_uid=%s",
+            problem_info.problem_uid,
+        )
 
         # Use the Pydantic BaseModel metaclass to create the class
         class_dict["__annotations__"] = annotations
         model_class = type(class_name, (BaseModel,), class_dict)
+        logging.info(
+            "Query schema class '%s' generated successfully for problem_uid=%s",
+            class_name,
+            problem_info.problem_uid,
+        )
         return model_class
 
     def get_instance_info_from_data(
@@ -207,6 +286,10 @@ class InstanceIndex:
         Create an instance of the instance model from the data.
         """
         instance_info = self.IndexTable(**instance_data.model_dump())
+        logging.debug(
+            "Converted instance data to IndexTable instance for problem_uid=%s",
+            self.problem_info.problem_uid,
+        )
         return instance_info
 
     def deindex_instance(self, instance_uid: str, session: sqlmodel.Session):
@@ -214,12 +297,21 @@ class InstanceIndex:
         Remove the instance with the given instance_uid from the index.
         Note that the file is not deleted as it is not a responsibility of the index.
         """
-        # Find the instance in the index table\
         instance_index = session.get(self.IndexTable, instance_uid)
         if instance_index:
-            # Delete the instance from the index table
             session.delete(instance_index)
             session.commit()
+            logging.info(
+                "Deindexed instance with uid=%s for problem_uid=%s",
+                instance_uid,
+                self.problem_info.problem_uid,
+            )
+        else:
+            logging.warning(
+                "Attempted to deindex non-existent instance with uid=%s for problem_uid=%s",
+                instance_uid,
+                self.problem_info.problem_uid,
+            )
 
     def index_instance(
         self, instance: BaseModel, session: sqlmodel.Session
@@ -258,14 +350,15 @@ class InstanceIndex:
 
         session.commit()
         return instance_index
-    
+
     def get_instance_uids(self, session: sqlmodel.Session) -> list[str]:
         """
         Get the unique identifiers of all instances.
         """
-        statement = sqlmodel.select(getattr(self.IndexTable, self.problem_info.uid_attribute))
+        statement = sqlmodel.select(
+            getattr(self.IndexTable, self.problem_info.uid_attribute)
+        )
         return list(session.exec(statement).all())
-    
 
     def get_range_query_bounds(
         self, session: sqlmodel.Session
@@ -290,9 +383,13 @@ class InstanceIndex:
             min_val = getattr(query_schema, min_field_name)
             max_val = getattr(query_schema, max_field_name)
             if min_val is not None:
-                statement = statement.filter(getattr(self.IndexTable, field_name) >= min_val)
+                statement = statement.filter(
+                    getattr(self.IndexTable, field_name) >= min_val
+                )
             if max_val is not None:
-                statement = statement.filter(getattr(self.IndexTable, field_name) <= max_val)
+                statement = statement.filter(
+                    getattr(self.IndexTable, field_name) <= max_val
+                )
 
         # Add the boolean filters
         for field_name in self.problem_info.boolean_filters:
@@ -306,24 +403,35 @@ class InstanceIndex:
         # Add the search field
         if query_schema.search is not None:
             statement = statement.filter(
-                getattr(self.IndexTable, self.problem_info.uid_attribute).contains(query_schema.search)
+                getattr(self.IndexTable, self.problem_info.uid_attribute).contains(
+                    query_schema.search
+                )
             )
 
         # Add the sort field
         if query_schema.sort_by is not None:
             if query_schema.sort_by[0] == "-":
                 field_name = query_schema.sort_by[1:]
-                statement = statement.order_by(getattr(self.IndexTable, field_name).desc())
+                statement = statement.order_by(
+                    getattr(self.IndexTable, field_name).desc()
+                )
             else:
-                statement = statement.order_by(getattr(self.IndexTable, query_schema.sort_by))
+                statement = statement.order_by(
+                    getattr(self.IndexTable, query_schema.sort_by)
+                )
 
         # Add the pagination
-        count_statement = sqlmodel.select(sqlmodel.func.count()).select_from(statement.alias())
+        count_statement = sqlmodel.select(sqlmodel.func.count()).select_from(
+            statement.alias()
+        )
         statement = statement.offset(query_schema.offset).limit(query_schema.limit)
 
         total = session.exec(count_statement).first()
         items = session.exec(statement).all()
 
         return self.PaginatedResponse(
-            items=items, offset=query_schema.offset, limit=query_schema.limit, total=total
+            items=items,
+            offset=query_schema.offset,
+            limit=query_schema.limit,
+            total=total,
         )

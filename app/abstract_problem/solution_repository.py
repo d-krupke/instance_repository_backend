@@ -7,9 +7,7 @@ import hashlib
 class SolutionRepository:
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
-        self.file_system = LocalFileSystemWithCompression(
-            problem_info.solutions_root
-        )
+        self.file_system = LocalFileSystemWithCompression(problem_info.solutions_root)
         if self.problem_info.solution_model is None:
             raise ValueError("The problem does not have a solution model")
 
@@ -61,8 +59,10 @@ class SolutionRepository:
         solution_hash = hashlib.md5(solution_txt.encode("utf-8")).hexdigest()
         solution_uid = f"{instance_uid}/{solution_hash}"
         check_uid_pattern(instance_uid)
-        return solution_uid, self.file_system.save(solution, solution_uid, exists_ok=overwrite)
-    
+        return solution_uid, self.file_system.save(
+            solution, solution_uid, exists_ok=overwrite
+        )
+
     def delete_solution(self, solution_uid: str):
         """
         Delete the solution with the given solution_uid.

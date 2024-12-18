@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from .instance_repository import check_uid_pattern
 from .problem_info import ProblemInfo
@@ -9,7 +8,7 @@ class AssetRepository:
         self.problem_info = problem_info
         self.root = problem_info.assets_root
 
-    def add(self, asset_class, instance_uid, asset,  exists_ok: bool = False) -> Path:
+    def add(self, asset_class, instance_uid, asset, exists_ok: bool = False) -> Path:
         """
         Add a binary asset to the repository.
         """
@@ -22,8 +21,8 @@ class AssetRepository:
         with open(asset_path, "wb") as file:
             file.write(asset)
         return asset_path
-    
-    def delete_assets(self, instance_uid: str, asset_class: str|None = None):
+
+    def delete_assets(self, instance_uid: str, asset_class: str | None = None):
         """
         Delete the assets with the given instance_uid.
         """
@@ -32,7 +31,11 @@ class AssetRepository:
         if not asset_dir.exists():
             return
         if asset_class is not None:
-            asset_path = asset_dir / asset_class / f"{instance_uid}.{self.problem_info.assets[asset_class]}"
+            asset_path = (
+                asset_dir
+                / asset_class
+                / f"{instance_uid}.{self.problem_info.assets[asset_class]}"
+            )
             if asset_path.exists():
                 asset_path.unlink()
         else:
