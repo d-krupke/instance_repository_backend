@@ -13,9 +13,11 @@ def get_session():
     finally:
         session.close()
 
+
 def get_db():
     with get_session() as session:
         yield session
+
 
 def create_tables():
     SQLModel.metadata.create_all(engine)

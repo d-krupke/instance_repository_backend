@@ -1,9 +1,6 @@
-
 from .models import BatchedAssetsRequest
 
 from .security import verify_api_key
-
-
 
 
 from .asset_repository import AssetRepository
@@ -11,8 +8,9 @@ from .problem_info import ProblemInfo
 from fastapi import APIRouter, Depends
 
 
-
-def build_asset_routes(router: APIRouter, problem_info: ProblemInfo, asset_repository: AssetRepository):
+def build_asset_routes(
+    router: APIRouter, problem_info: ProblemInfo, asset_repository: AssetRepository
+):
     @router.post("/assets/{asset_class}/{instance_uid}")
     def add_asset(
         asset_class: str,

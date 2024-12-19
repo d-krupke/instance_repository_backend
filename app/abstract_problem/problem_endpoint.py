@@ -13,8 +13,6 @@ from .solution_index import SolutionIndex
 logging.basicConfig(level=logging.INFO)
 
 
-
-
 class ProblemEndpoint:
     def __init__(self, path: Path):
         self.path = path
@@ -27,7 +25,9 @@ class ProblemEndpoint:
             else None
         )
         self.solution_index = (
-            SolutionIndex(self.problem_info) if self.problem_info.solution_model else None
+            SolutionIndex(self.problem_info)
+            if self.problem_info.solution_model
+            else None
         )
 
     def build_routes(self, app: FastAPI):

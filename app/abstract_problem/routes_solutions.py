@@ -15,6 +15,7 @@ from .instance_index import InstanceIndex
 from fastapi import APIRouter, Depends, HTTPException
 from .models import PaginatedRequest
 
+
 def build_solution_routes(
     router: APIRouter,
     problem_info: ProblemInfo,
@@ -69,7 +70,7 @@ def build_solution_routes(
 
     @router.post("/solutions")
     def create_solution(
-        solution: SolutionModel,
+        solution: SolutionModel,  # type: ignore
         session: Session = Depends(get_db),
         api_key: str = Depends(verify_api_key),
     ):

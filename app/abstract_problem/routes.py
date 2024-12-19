@@ -22,7 +22,6 @@ from .instance_repository import InstanceRepository
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
 
 
-
 def build_routes_for_problem(
     app: FastAPI,
     problem_info: ProblemInfo,
@@ -60,7 +59,7 @@ def build_routes_for_problem(
     def get_instance_infos(
         *,
         session: Session = Depends(get_db),
-        query: QuerySchema = Depends(),
+        query: QuerySchema = Depends(),  # type: ignore
     ):
         """
         Query instance metadata with pagination and filtering support.
@@ -87,9 +86,7 @@ def build_routes_for_problem(
         return result
 
     @router.get("/problem_info")
-    def get_problem_info(
-        *, session: Session = Depends(get_db)
-    ) -> ProblemInfoResponse:
+    def get_problem_info(*, session: Session = Depends(get_db)) -> ProblemInfoResponse:
         """
         Retrieve metadata about the problem, including filters and asset information.
         """
@@ -103,11 +100,9 @@ def build_routes_for_problem(
             assets=problem_info.assets,
         )
 
-
-
     @router.post("/instances")
     def create_instance(
-        instance: InstanceModel,
+        instance: InstanceModel,  # type: ignore
         session: Session = Depends(get_db),
         api_key: str = Depends(verify_api_key),
     ):
@@ -138,11 +133,15 @@ def build_routes_for_problem(
             ):
                 solution_repository.delete_solution(solution_uid)
 
-    build_asset_routes(router=router, problem_info=problem_info, asset_repository=asset_repository)
+    build_asset_routes(
+        router=router, problem_info=problem_info, asset_repository=asset_repository
+    )
 
     if solution_repository is not None:
         if solution_index is None:
-            raise ValueError("Solution index is required when a solution repository is provided")
+            raise ValueError(
+                "Solution index is required when a solution repository is provided"
+            )
         build_solution_routes(
             router,
             problem_info=problem_info,
