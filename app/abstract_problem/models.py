@@ -1,7 +1,41 @@
 from pydantic import BaseModel, Field
+import sqlmodel
+import math
 
 
-from .instance_index import RangeQueryBounds
+class RangeQueryBounds(sqlmodel.SQLModel, table=True):
+    """
+    Saves the bounds for the range queries such that the interface
+    can show some meaningful default values.
+    """
+
+    problem_uid: str = sqlmodel.Field(..., primary_key=True)
+    field_name: str = sqlmodel.Field(..., primary_key=True)
+    min_val: float | None = sqlmodel.Field(default=None)
+    max_val: float | None = sqlmodel.Field(default=None)
+
+    def update(self, val: float) -> bool:
+        """
+        Update the bounds based on the new value.
+        """
+
+        # don't do anything if it is not a number
+        if not math.isfinite(val):
+            return False
+
+        if self.min_val is None or self.max_val is None:
+            self.min_val = val
+            self.max_val = val
+            return True
+
+        changed = False
+        if val < self.min_val:
+            self.min_val = val
+            changed = True
+        if val > self.max_val:
+            self.max_val = val
+            changed = True
+        return changed
 
 
 class ProblemInfoResponse(BaseModel):
