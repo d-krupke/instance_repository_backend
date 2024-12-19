@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from .security import verify_api_key
 
-from .database import get_db
+from ..database import get_db
 
 from .solution_index import SolutionIndex
 from .solution_repository import SolutionRepository

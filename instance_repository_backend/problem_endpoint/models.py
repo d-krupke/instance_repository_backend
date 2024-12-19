@@ -3,6 +3,22 @@ import sqlmodel
 import math
 
 
+class PaginatedInstanceResponse(BaseModel):
+    sorted_uids: list[str] = Field(
+        ...,
+        description="The sorted unique identifiers of the items in the current page",
+    )
+    data: dict[str, dict[str, int | str | float | None]] = Field(
+        ..., description="The data of the items in the current page"
+    )
+    assets: dict[str, dict[str, str]] = Field(
+        ..., description="The assets of the items in the current page"
+    )
+    offset: int = Field(..., description="The offset of the current page")
+    limit: int = Field(..., description="The limit of the current page")
+    total: int = Field(..., description="The total number of items")
+
+
 class RangeQueryBounds(sqlmodel.SQLModel, table=True):
     """
     Saves the bounds for the range queries such that the interface

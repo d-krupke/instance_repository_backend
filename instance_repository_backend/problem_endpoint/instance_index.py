@@ -1,7 +1,6 @@
 import logging
 
-from pydantic import BaseModel, Field
-from typing import Any, Type
+from pydantic import BaseModel
 import sqlmodel
 
 from .instance_query_schema import _generate_query_schema
@@ -10,15 +9,18 @@ from .instance_index_table import _generate_problem_instance_index_table
 
 from .problem_info import ProblemInfo
 
-from .models import RangeQueryBounds
+from .models import RangeQueryBounds, PaginatedInstanceResponse
 
 
 class InstanceIndex:
+    """
+    Create a query index for benchmark instances of a problem.
+    """
+
     def __init__(self, problem_info: ProblemInfo):
         self.problem_info = problem_info
         self.IndexTable = _generate_problem_instance_index_table(problem_info)
         self.QuerySchema = _generate_query_schema(problem_info)
-        self.PaginatedResponse = self._generate_paginated_response_model()
         logging.info(
             "InstanceIndex initialized with problem_uid=%s", problem_info.problem_uid
         )
@@ -32,31 +34,6 @@ class InstanceIndex:
             "Checked existence of instance with uid=%s: %s", instance_uid, exists
         )
         return exists
-
-    def _generate_paginated_response_model(self) -> Type[BaseModel]:
-        """
-        Generate a response model for paginated responses.
-        """
-        class_name = f"{self.problem_info.problem_uid}_paginated_response"
-        class_dict = {
-            "items": Field(..., description="The items in the current page"),
-            "offset": Field(..., description="The offset of the current page"),
-            "limit": Field(..., description="The limit of the current page"),
-            "total": Field(..., description="The total number of items"),
-        }
-        class_annotations = {
-            "items": list[self.IndexTable],
-            "offset": int,
-            "limit": int,
-            "total": int,
-        }
-        class_dict["__annotations__"] = class_annotations
-        logging.debug(
-            "Paginated response model '%s' generated successfully for problem_uid=%s",
-            class_name,
-            self.problem_info.problem_uid,
-        )
-        return type(class_name, (BaseModel,), class_dict)  # type: ignore
 
     def get_instance_metadata(
         self, instance_uid: str, session: sqlmodel.Session
@@ -119,6 +96,12 @@ class InstanceIndex:
         It will be in problem_info.path/instances/instance_uid.json.xz
         """
         instance_index = self.get_instance_info_from_data(instance)
+        instance_uid = getattr(instance, self.problem_info.uid_attribute)
+        logging.info(
+            "Indexing instance with uid=%s for problem_uid=%s",
+            instance_uid,
+            self.problem_info.problem_uid,
+        )
 
         # Check if the instance already exists in the index
         existing_instance = session.get(
@@ -169,7 +152,9 @@ class InstanceIndex:
         )
         return list(session.exec(statement).all())
 
-    def query(self, query_schema, session: sqlmodel.Session) -> Any:
+    def query(
+        self, query_schema, session: sqlmodel.Session
+    ) -> PaginatedInstanceResponse:
         """
         Build a SQLAlchemy query based on the query_schema.
         """
@@ -227,9 +212,16 @@ class InstanceIndex:
         total = session.exec(count_statement).first()
         items = session.exec(statement).all()
 
-        return self.PaginatedResponse(
-            items=items,
+        return PaginatedInstanceResponse(
+            sorted_uids=[
+                getattr(item, self.problem_info.uid_attribute) for item in items
+            ],
+            data={
+                getattr(item, self.problem_info.uid_attribute): item.model_dump()
+                for item in items
+            },
+            assets={},
             offset=query_schema.offset,
             limit=query_schema.limit,
-            total=total,
+            total=total if total else 0,
         )

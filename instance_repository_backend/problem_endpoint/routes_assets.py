@@ -1,5 +1,3 @@
-from .models import BatchedAssetsRequest
-
 from .security import verify_api_key
 
 
@@ -55,20 +53,3 @@ def build_asset_routes(
         /assets/thumbnail/instance123
         """
         asset_repository.delete_assets(instance_uid, asset_class=asset_class)
-
-    @router.get("/assets", response_model=dict[str, dict[str, str]])
-    def get_all_assets(request: BatchedAssetsRequest):
-        """
-        Retrieve all assets for a batch of instances.
-
-        The response is a dictionary where keys are instance UIDs, and values are dictionaries
-        mapping asset classes to their file paths.
-        """
-        result = {}
-        for instance_uid in request.instance_uids:
-            available = asset_repository.available_assets_for_instance(instance_uid)
-            result[instance_uid] = {
-                asset_class: f"{problem_info.assets_url_root}{path}"
-                for asset_class, path in available.items()
-            }
-        return result

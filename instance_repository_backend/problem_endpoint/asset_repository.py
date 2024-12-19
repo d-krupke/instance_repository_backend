@@ -58,3 +58,11 @@ class AssetRepository:
             if asset_path.exists():
                 assets[asset_class] = asset_path.relative_to(self.root)
         return assets
+
+    def get_url(self, instance_uid: str, asset_class: str) -> str:
+        """
+        Get the URL for the asset with the given instance_uid and asset_class.
+        """
+        check_uid_pattern(instance_uid)
+        extension = self.problem_info.assets[asset_class]
+        return f"{self.problem_info.assets_url_root}/{asset_class}/{instance_uid}.{extension}"

@@ -67,6 +67,7 @@ class ProblemEndpoint:
         for solution_uid in solution_uids:
             if self.solution_index.exists(solution_uid, session=session):
                 continue
+            logging.info("Indexing solution %s", solution_uid)
             solution = self.solution_repository.read_solution(solution_uid)
             self.solution_index.index_solution(
                 solution_uid=solution_uid, solution=solution, session=session

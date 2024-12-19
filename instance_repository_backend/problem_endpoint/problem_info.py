@@ -153,11 +153,11 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
     # Create the ProblemInfo instance
     problem_info = ProblemInfo(
         instances_root=path / "instances",
-        instances_url_root="/instances",
+        instances_url_root=f"/{problem_uid}/instances",
         solutions_root=path / "solutions",
-        solutions_url_root="/solutions",
+        solutions_url_root=f"/{problem_uid}/solutions",
         assets_root=path / "assets",
-        assets_url_root="/assets",
+        assets_url_root=f"/{problem_uid}/assets",
         problem_uid=problem_uid,
         instance_model=instance_schema,
         range_filters=range_filters,

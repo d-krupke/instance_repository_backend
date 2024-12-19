@@ -8,8 +8,8 @@ from pydantic import (
 )
 
 
-class KnapsackInstance(BaseModel):
-    """Pydantic model representing a knapsack problem instance."""
+class MultiKnapsackInstance(BaseModel):
+    """Pydantic model representing a multi-knapsack problem instance."""
 
     # Metadata
     instance_uid: str = Field(..., description="The unique identifier of the instance")
@@ -19,21 +19,24 @@ class KnapsackInstance(BaseModel):
     num_items: PositiveInt = Field(
         ..., description="The number of items available in the instance"
     )
+    num_knapsacks: PositiveInt = Field(
+        ..., description="The number of knapsacks in the instance"
+    )
     weight_capacity_ratio: PositiveFloat = Field(
         ...,
         description=(
-            "The ratio of the total weight of all items to the knapsack capacity. "
-            "Calculated as the sum of item weights divided by knapsack capacity."
+            "The ratio of the total weight of all items to the total knapsack capacity. "
+            "Calculated as the sum of item weights divided by the sum of knapsack capacities."
         ),
     )
     integral: bool = Field(
         default=False,
-        description="Specifies if the capacity, values, and weights are integral.",
+        description="Specifies if the capacities, values, and weights are integral.",
     )
 
     # Instance data
-    capacity: NonNegativeFloat | NonNegativeInt = Field(
-        ..., description="The total capacity of the knapsack"
+    capacities: list[NonNegativeFloat | NonNegativeInt] = Field(
+        ..., description="The capacities of each knapsack"
     )
     item_values: list[NonNegativeFloat | NonNegativeInt] = Field(
         ..., description="The values assigned to each item"
@@ -43,54 +46,60 @@ class KnapsackInstance(BaseModel):
     )
 
 
-class KnapsackSolution(BaseModel):
-    """Pydantic model representing a solution to a knapsack problem instance."""
+class MultiKnapsackSolution(BaseModel):
+    """Pydantic model representing a solution to a multi-knapsack problem instance."""
 
     # Solution metadata
     instance_uid: str = Field(
         ..., description="The unique identifier of the corresponding instance"
     )
     objective: NonNegativeFloat = Field(
-        ..., description="The objective value of the solution (e.g., total value)"
+        ..., description="The total value of selected items across all knapsacks"
     )
     authors: str = Field(..., description="The authors or contributors of the solution")
 
     # Solution data
-    selected_items: list[int] = Field(
-        ..., description="Indices of the selected items in the solution"
+    allocations: list[list[int]] = Field(
+        ...,
+        description=(
+            "Lists of item indices for each knapsack. "
+            "Each sublist corresponds to the items allocated to one knapsack."
+        ),
     )
 
 
-# Configuration constants for the knapsack problem
+# Configuration constants for the multi-knapsack problem
 
 # Unique identifier for the problem
-PROBLEM_UID = "knapsack"
+PROBLEM_UID = "multi-knapsack"
 
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 
 # Schema definitions
-INSTANCE_SCHEMA = KnapsackInstance
-SOLUTION_SCHEMA = KnapsackSolution
+INSTANCE_SCHEMA = MultiKnapsackInstance
+SOLUTION_SCHEMA = MultiKnapsackSolution
 
 # Filtering and sorting configurations
 RANGE_FILTERS = [
     "num_items",
+    "num_knapsacks",
     "weight_capacity_ratio",
 ]  # Fields usable for range filters
 BOOLEAN_FILTERS = ["integral"]  # Boolean fields usable for filters
-SORT_FIELDS = ["num_items", "weight_capacity_ratio"]  # Fields usable for sorting
+SORT_FIELDS = ["num_items", "num_knapsacks", "weight_capacity_ratio"]  # Fields for sorting
 
 # Fields for display purposes in instance overviews
 DISPLAY_FIELDS = [
     "instance_uid",
     "num_items",
+    "num_knapsacks",
     "weight_capacity_ratio",
     "integral",
     "origin",
 ]
 
-# Assets associated with the knapsack problem
+# Assets associated with the multi-knapsack problem
 ASSETS = {"thumbnail": "png", "image": "png"}
 
 # Solution-specific configurations

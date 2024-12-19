@@ -3,14 +3,14 @@ from typing import Type
 from pydantic import BaseModel
 from sqlmodel import Session
 
-from .models import ProblemInfoResponse
+from .models import ProblemInfoResponse, PaginatedInstanceResponse
 
 from .security import verify_api_key
 
 from .routes_solutions import build_solution_routes
 from .routes_assets import build_asset_routes
 
-from .database import get_db
+from ..database import get_db
 
 from .solution_index import SolutionIndex
 from .solution_repository import SolutionRepository
@@ -55,7 +55,7 @@ def build_routes_for_problem(
         except KeyError as ke:
             raise HTTPException(status_code=404, detail=str(ke))
 
-    @router.get("/instance_info", response_model=instance_index.PaginatedResponse)
+    @router.get("/instance_info", response_model=PaginatedInstanceResponse)
     def get_instance_infos(
         *,
         session: Session = Depends(get_db),
@@ -64,7 +64,19 @@ def build_routes_for_problem(
         """
         Query instance metadata with pagination and filtering support.
         """
-        return instance_index.query(query, session)
+        response = instance_index.query(query, session)
+        # add assets info
+        if problem_info.assets:
+            for instance_uid in response.sorted_uids:
+                response.assets[instance_uid] = {
+                    asset_class: asset_repository.get_url(
+                        instance_uid=instance_uid, asset_class=asset_class
+                    )
+                    for asset_class in asset_repository.available_assets_for_instance(
+                        instance_uid
+                    )
+                }
+        return response
 
     @router.get("/instance_schema")
     def get_instance_schema() -> dict:
@@ -74,7 +86,8 @@ def build_routes_for_problem(
         return InstanceModel.model_json_schema()
 
     @router.get(
-        "/instance_info/{instance_uid}", response_model=instance_index.IndexTable
+        "/instance_info/{instance_uid}",
+        response_model=dict[str, str | int | float | None],
     )
     def get_instance_info(instance_uid: str, session: Session = Depends(get_db)):
         """
@@ -83,7 +96,7 @@ def build_routes_for_problem(
         result = instance_index.get_instance_metadata(instance_uid, session)
         if result is None:
             raise HTTPException(status_code=404, detail="Instance not found")
-        return result
+        return result.model_dump()
 
     @router.get("/problem_info")
     def get_problem_info(*, session: Session = Depends(get_db)) -> ProblemInfoResponse:
