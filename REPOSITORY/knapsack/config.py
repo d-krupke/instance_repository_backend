@@ -71,7 +71,9 @@ INSTANCE_UID_ATTRIBUTE = "instance_uid"
 
 # Schema definitions
 INSTANCE_SCHEMA = KnapsackInstance
-SOLUTION_SCHEMA = KnapsackSolution
+SOLUTION_SCHEMA = (
+    KnapsackSolution  # Optional: Set to None if solutions are not supported
+)
 
 # Filtering and sorting configurations
 RANGE_FILTERS = [
@@ -94,5 +96,7 @@ DISPLAY_FIELDS = [
 ASSETS = {"thumbnail": "png", "image": "png"}
 
 # Solution-specific configurations
-SOLUTION_SORT_ATTRIBUTES = ["objective"]  # Fields for sorting solutions
+SOLUTION_SORT_ATTRIBUTES = [
+    "objective"
+]  # Fields for sorting solutions. A "-" prefix indicates descending order.
 SOLUTION_DISPLAY_FIELDS = ["objective", "authors"]  # Fields to display for solutions
