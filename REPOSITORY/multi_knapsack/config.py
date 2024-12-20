@@ -87,7 +87,11 @@ RANGE_FILTERS = [
     "weight_capacity_ratio",
 ]  # Fields usable for range filters
 BOOLEAN_FILTERS = ["integral"]  # Boolean fields usable for filters
-SORT_FIELDS = ["num_items", "num_knapsacks", "weight_capacity_ratio"]  # Fields for sorting
+SORT_FIELDS = [
+    "num_items",
+    "num_knapsacks",
+    "weight_capacity_ratio",
+]  # Fields for sorting
 
 # Fields for display purposes in instance overviews
 DISPLAY_FIELDS = [

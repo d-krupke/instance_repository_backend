@@ -42,7 +42,9 @@ if __name__ == "__main__":
         # Calculate weight_capacity_ratio as total weights / total capacities
         total_capacity = sum(capacities)
         total_weight = sum(item_weights)
-        weight_capacity_ratio = total_weight / total_capacity if total_capacity > 0 else 0
+        weight_capacity_ratio = (
+            total_weight / total_capacity if total_capacity > 0 else 0
+        )
 
         # Create instance
         instance = MultiKnapsackInstance(

@@ -1,11 +1,23 @@
 # Instance Repository Backend
 
-The goal of this project is to provide a simple and maintainable endpoint for serving benchmark instances (and optionally solutions). There are two main design goals:
+The goal of this project is to provide a simple and maintainable endpoint for
+serving benchmark instances (and optionally solutions). There are two main
+design goals:
 
-1. The instance repository should be built upon a simple file structure that can be easily cloned from a git repository or FTP server. It must be easy to create a local archive of the repository or host it independently if we decide to no longer maintain a public server.
-2. It should be trivial to add new problem classes without rewriting any code. A simple copy-and-paste configuration file that can be adapted to the new problem class should be sufficient.
+1. The instance repository should be built upon a simple file structure that can
+   be easily cloned from a git repository or FTP server. It must be easy to
+   create a local archive of the repository or host it independently if we
+   decide to no longer maintain a public server.
+2. It should be trivial to add new problem classes without rewriting any code. A
+   simple copy-and-paste configuration file that can be adapted to the new
+   problem class should be sufficient.
 
-A configuration for a problem consists of schemas for the instance and solution files, as well as the attributes you want for the endpoint. The configuration is a simple Python file with schemas defined using Pydantic v2. The decision to use Pydantic is based on its popularity, ability to create fully documented and easy-to-read schemas, and seamless integration with FastAPI, which provides documented endpoints for free based on the schema descriptions.
+A configuration for a problem consists of schemas for the instance and solution
+files, as well as the attributes you want for the endpoint. The configuration is
+a simple Python file with schemas defined using Pydantic v2. The decision to use
+Pydantic is based on its popularity, ability to create fully documented and
+easy-to-read schemas, and seamless integration with FastAPI, which provides
+documented endpoints for free based on the schema descriptions.
 
 A configuration file could look like this:
 

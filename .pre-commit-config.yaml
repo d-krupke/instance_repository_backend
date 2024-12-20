@@ -47,11 +47,11 @@ repos:
     hooks:
       - id: ruff
         types_or: [python, pyi, jupyter]
-        args: [--fix,--ignore, T201, --ignore, E402]
-        exclude: '^algorithms/CPSAT_v1|algorithms/CPSAT_v1_with_weights|algorithms/SAT_v1|algorithms/SAT_v2|utilities|testing|notebooks'
+        args: [--fix, --ignore, T201, --ignore, E402]
+        exclude: "^algorithms/CPSAT_v1|algorithms/CPSAT_v1_with_weights|algorithms/SAT_v1|algorithms/SAT_v2|utilities|testing|notebooks"
       - id: ruff-format
         types_or: [python, pyi, jupyter]
-        exclude: '^algorithms/CPSAT_v1|algorithms/CPSAT_v1_with_weights|algorithms/SAT_v1|algorithms/SAT_v2'
+        exclude: "^algorithms/CPSAT_v1|algorithms/CPSAT_v1_with_weights|algorithms/SAT_v1|algorithms/SAT_v2"
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.3.0

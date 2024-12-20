@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 knapsack = ProblemEndpoint(Path("./PROBLEMS/knapsack"))
 multi_knapsack = ProblemEndpoint(Path("./PROBLEMS/multi_knapsack"))
 
+
 def create_index():
     create_tables()
     with get_session() as session:
