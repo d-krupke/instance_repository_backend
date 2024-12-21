@@ -14,8 +14,10 @@ Functions:
 
 from contextlib import contextmanager
 from sqlmodel import SQLModel, Session, create_engine
+import os
 
-engine = create_engine("sqlite:///database.db")
+database_path = os.getenv("IRB_DATABASE_PATH", "sqlite:///database.db")
+engine = create_engine(database_path)
 
 
 @contextmanager

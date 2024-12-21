@@ -14,6 +14,9 @@ class PaginatedInstanceResponse(BaseModel):
     assets: dict[str, dict[str, str]] = Field(
         ..., description="The assets of the items in the current page"
     )
+    download_links: dict[str, str] = Field(
+        ..., description="The download links of the items in the current page"
+    )
     offset: int = Field(..., description="The offset of the current page")
     limit: int = Field(..., description="The limit of the current page")
     total: int = Field(..., description="The total number of items")

@@ -221,6 +221,7 @@ class InstanceIndex:
                 for item in items
             },
             assets={},
+            download_links={},
             offset=query_schema.offset,
             limit=query_schema.limit,
             total=total if total else 0,

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Type
 from pydantic import BaseModel, Field
@@ -97,6 +98,7 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
     Load the problem information from a Python file.
     """
     config_path = path / "config.py"
+    subpath = path.relative_to(path.parent)
     if not config_path.exists():
         raise ValueError(f"No config.py file found in {path}")
     # Load the content of the file
@@ -151,13 +153,15 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
             "The POSTFIX_QUERY_GEQ is not valid. It should only contain alphanumeric characters and underscores."
         )
     # Create the ProblemInfo instance
+    url_root = os.getenv("IRB_REPOSITORY_URL", "/").rstrip("/")
+    subpath_str = str(subpath).rstrip("/")
     problem_info = ProblemInfo(
         instances_root=path / "instances",
-        instances_url_root=f"/{problem_uid}/instances",
+        instances_url_root=f"{url_root}/{subpath_str}/instances/",
         solutions_root=path / "solutions",
-        solutions_url_root=f"/{problem_uid}/solutions",
+        solutions_url_root=f"{url_root}/{subpath_str}/solutions/",
         assets_root=path / "assets",
-        assets_url_root=f"/{problem_uid}/assets",
+        assets_url_root=f"{url_root}/{subpath_str}/assets/",
         problem_uid=problem_uid,
         instance_model=instance_schema,
         range_filters=range_filters,

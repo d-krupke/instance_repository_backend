@@ -12,6 +12,8 @@ design goals:
    simple copy-and-paste configuration file that can be adapted to the new
    problem class should be sufficient.
 
+## Configuring a New Problem Class
+
 A configuration for a problem consists of schemas for the instance and solution
 files, as well as the attributes you want for the endpoint. The configuration is
 a simple Python file with schemas defined using Pydantic v2. The decision to use
@@ -65,6 +67,8 @@ class KnapsackInstance(BaseModel):
     item_weights: list[NonNegativeFloat | NonNegativeInt] = Field(
         ..., description="The weights assigned to each item"
     )
+    # NOTE: You could use a hierarchy of Pydantic models for more complex instances.
+    # You just need to specify the root model below in the INSTANCE_SCHEMA variable.
 
 
 class KnapsackSolution(BaseModel):
@@ -125,3 +129,42 @@ SOLUTION_SORT_ATTRIBUTES = [
 ]  # Fields for sorting solutions. A "-" prefix indicates descending order.
 SOLUTION_DISPLAY_FIELDS = ["objective", "authors"]  # Fields to display for solutions
 ```
+
+You can start the instance repository backend by running the following command:
+
+```bash
+docker compose up --build
+```
+
+After that, you can open the Swagger UI at
+[http://127.0.0.1/docs](http://127.0.0.1/docs) to interact with the API. You can
+also access the repository directly at
+[http://127.0.0.1/static/](http://127.0.0.1/static/). Adapt the
+docker-compose.yml file to your needs and change the used access keys.
+
+To test things, both example problems have a `generate.py` script that creates
+some random instances for you.
+
+## Structure
+
+The project is structured as follows:
+
+- `server/`: Contains the FastAPI server. You do not need to modify this
+  directory.
+- `REPOSITORY/`: Contains the configuration and data for the instance
+  repository. It will be mapped directly to the server, allowing you to manage
+  it, e.g., via a separate git repository.
+- `.dockerignore`: Files to ignore when building the Docker image.
+- `.gitignore`: Files to ignore when committing to the git repository.
+- `.pre-commit-config.yaml`: Configuration for pre-commit hooks. This is just a
+  nice tool to ensure code quality.
+- `docker-compose.yml`: Docker compose file to start the server. You will have
+  to adapt this file to your needs.
+- `Dockefile`: Dockerfile to build the FastAPI server.
+- `entrypoint.py`: Entrypoint script for the Docker container. It will index all
+  instances and solutions on startup and start the FastAPI server.
+- `LICENSE`: License file. This is the very permissive MIT license.
+- `nginx.conf`: Configuration file for the Nginx server. You will have to adapt
+  this file to your needs, especially for HTTPS.
+- `README.md`: This file.
+- `requirements.txt`: Python requirements for the FastAPI server.

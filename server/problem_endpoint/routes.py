@@ -76,6 +76,9 @@ def build_routes_for_problem(
                         instance_uid
                     )
                 }
+                response.download_links[instance_uid] = (
+                    instance_repository.get_download_url(instance_uid)
+                )
         return response
 
     @router.get("/instance_schema")

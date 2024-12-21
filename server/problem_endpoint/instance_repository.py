@@ -154,3 +154,11 @@ class InstanceRepository(Generic[T]):
         Iterate over the files in problem_info.path/instances and return the instance_uids.
         """
         return self.file_system.all_uids()
+
+    def get_download_url(self, instance_uid: str) -> str:
+        """
+        Get the download URL of the instance with the given instance_uid.
+        """
+        check_uid_pattern(instance_uid)
+        base_url = self.problem_info.instances_url_root.rstrip("/")
+        return f"{base_url}/{instance_uid}.json.xz"
