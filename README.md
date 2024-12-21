@@ -11,6 +11,50 @@ instances (and optionally solutions). It was designed with two main goals:
    Ideally, you can simply copy an existing configuration file and adapt it to
    the new problem class without modifying any code.
 
+## Features
+
+The instance repository backend offers several key features to manage and
+interact with benchmark instances:
+
+- **Instance and Solution Management**: Easily upload, download, and delete
+  instances and solutions.
+- **Filtering and Sorting**: Filter instances by numerical or boolean
+  attributes, and sort them by specific fields.
+- **Asset Management**: Upload and download assets (e.g., images or thumbnails)
+  associated with each instance.
+
+While this repository provides the backend, the user interface is expected to be
+served by a separate frontend (not included here). All necessary endpoints and
+metadata are exposed, allowing you to build a simple JavaScript frontend that
+can be hosted on a static web server. By dynamically exposing query parameters,
+the backend helps keep the frontend in sync and facilitates reuse across
+different problem classes.
+
+Because research institutes often have changing teams, this system is designed
+to be easy to maintain and extend—even for newcomers with minimal web
+development experience. Should the institute discontinue the public server,
+anyone can simply clone the repository and host the system independently with
+minimal effort.
+
+## Limitations
+
+While this project aims to be lightweight, maintainable, and easily extensible,
+it comes with a few important limitations:
+
+- **Security**: It uses only basic access control via a single access key,
+  making it unsuitable for scenarios where external users need to upload their
+  own instances or solutions.
+- **Scalability**: Designed primarily for read-only use with occasional updates,
+  the system may struggle under heavy write loads or frequent modifications.
+- **Performance**: The server is not optimized for high-traffic or large-scale
+  deployments. It works best for small to medium-sized repositories within
+  research institutes or small communities rather than large public platforms
+  like Kaggle.
+- **Flexibility**: Because the system relies on Pydantic and follows certain
+  conventions (e.g., instance and solution UIDs), you may need to adapt your
+  data or code if you plan to host repositories that deviate significantly from
+  these models.
+
 ## Configuring a New Problem Class
 
 A configuration for a problem class consists of schemas for instance and
