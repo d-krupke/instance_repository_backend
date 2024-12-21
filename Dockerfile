@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
-# WILL BE OVERRIDEN BY docker-compose.yml
+# WILL BE OVERRIDDEN BY docker-compose.yml
 # Define environment variable
 ENV IRB_DATABASE_PATH sqlite:///database.db
 ENV IRB_REPOSITORY_URL http://127.0.0.1:8000/static/
