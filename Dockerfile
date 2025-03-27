@@ -28,6 +28,8 @@ ENV IRB_DATABASE_PATH sqlite:///database.db
 ENV IRB_REPOSITORY_URL http://127.0.0.1:8000/static/
 # Change this key for production!
 ENV IRB_API_KEY 3456345-456-456
+# url root for the API
+ENV IRB_ROOT=/
 
 # Run app.py when the container launches
 CMD ["python", "entrypoint.py"]
