@@ -30,6 +30,7 @@ ENV IRB_REPOSITORY_URL http://127.0.0.1:8000/static/
 ENV IRB_API_KEY 3456345-456-456
 # url root for the API
 ENV IRB_ROOT=/
+ENV IRB_DOMAIN=https://alg.ibr.cs.tu-bs.de
 
 # Run app.py when the container launches
 CMD ["python", "entrypoint.py"]

@@ -8,6 +8,7 @@ services:
       - IRB_REPOSITORY_URL=http://127.0.0.1:80/static/ # URL for the repository
       - IRB_ROOT=/
       - IRB_API_KEY=3456345-456-456 # API key for authentication
+      - IRB_DOMAIN=https://alg.ibr.cs.tu-bs.de # For CORS
     volumes:
       - ./REPOSITORY:/app/REPOSITORY # Mounts the local REPOSITORY directory to /app/REPOSITORY in the container
     depends_on:
