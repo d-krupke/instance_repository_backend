@@ -3,7 +3,7 @@ from .security import verify_api_key
 
 from .asset_repository import AssetRepository
 from .problem_info import ProblemInfo
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 
 
 def build_asset_routes(
@@ -13,7 +13,7 @@ def build_asset_routes(
     def add_asset(
         asset_class: str,
         instance_uid: str,
-        asset: bytes,
+        file: UploadFile = File(...), 
         api_key: str = Depends(verify_api_key),
     ):
         """
@@ -22,9 +22,10 @@ def build_asset_routes(
         Parameters:
         - asset_class: The type of asset (e.g., 'image', 'thumbnail').
         - instance_uid: The unique identifier of the instance.
-        - asset: The binary content of the asset to store.
+        - file: The binary content of the asset to store.
         """
-        asset_repository.add(asset_class, instance_uid, asset)
+        asset_bytes = file.file.read()
+        asset_repository.add(asset_class, instance_uid, asset_bytes)
 
     @router.get("/assets/{instance_uid}", response_model=dict[str, str])
     def get_assets(instance_uid: str):
