@@ -339,7 +339,7 @@ class Connector:
         """Fetches all problem instances."""
         if params is None:
             params = {}
-        response = requests.get(f"{self.base_url}/{self.problem_uid}/instance_info/", 
+        response = requests.get(f"{self.base_url}/{self.problem_uid}/instance_info", 
                                 params={"offset": offset, "limit": limit}.update(params))
         response.raise_for_status()
         return response.json()
@@ -364,7 +364,7 @@ class Connector:
             headers["api-key"] = self.api_key
             
         response = requests.post(
-            f"{self.base_url}/{self.problem_uid}/instances/",
+            f"{self.base_url}/{self.problem_uid}/instances",
             json=instance.model_dump(mode="json"),
             headers=headers
         )
@@ -459,6 +459,7 @@ class Connector:
         """Fetches a specific solution by its UID."""
         response = requests.get(
             f"{self.base_url}/{self.problem_uid}/solutions/{solution_uid}")
+        print(response.text)
         response.raise_for_status()
         return response.json()
     
@@ -478,6 +479,7 @@ class Connector:
     
 # For the local example configuration    
 connector = Connector(base_url="http://127.0.0.1", problem_uid=PROBLEM_UID, api_key="3456345-456-456")
+
 ```
 
 
