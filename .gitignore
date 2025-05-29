@@ -167,3 +167,5 @@ REPOSITORY/**/instances
 REPOSITORY/job_shop/benchmark_instances
 REPOSITORY/knapsack/jooken_master/knapsackProblemInstances-master
 REPOSITORY/knapsack/jooken_master.zip
+REPOSITORY/cvrp_2d/benchmark_instances/Set_A
+REPOSITORY/cvrp_2d/data

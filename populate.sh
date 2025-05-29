@@ -40,7 +40,7 @@ fi
 export BASE_URL="$server"
 export API_KEY="$token"
 
-for repo in cflp etsp job_shop knapsack; do
+for repo in cflp etsp flp cvrp_2d job_shop knapsack; do
     cd ./REPOSITORY/$repo
     python populate.py
     cd - > /dev/null
