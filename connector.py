@@ -153,5 +153,3 @@ class Connector:
     def delete_solution(self, solution_uid: str) -> dict[str, Any]:
         """Deletes a specific solution for a problem instance."""
         return self._request("DELETE", f"/solutions/{solution_uid}")  # type: ignore
-
-

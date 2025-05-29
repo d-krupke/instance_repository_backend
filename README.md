@@ -274,34 +274,48 @@ The backend exposes several routes for managing instances and solutions.
   for a problem by its UID.
 - `GET /{PROBLEM_UID}/instance_info`: Query instance metadata with pagination
   and filtering support. Use `GET /{PROBLEM_UID}/problem_info` to automatically
-  explore the available query parameters. You can also use the Swagger UI to do that.
-  ![Swagger UI Screenshot](.assets/swagger_instance_info.png)
+  explore the available query parameters. You can also use the Swagger UI to do
+  that. ![Swagger UI Screenshot](.assets/swagger_instance_info.png)
 - `GET /{PROBLEM_UID}/instance_schema`: Return the JSON schema of the instance
   model.
 - `GET /{PROBLEM_UID}/instance_info/{INSTANCE_UID}`: Retrieve metadata for a
   specific instance.
 - `GET /{PROBLEM_UID}/problem_info`: Retrieve metadata about the problem,
   including filters and asset information.
-    - This can look like this, and tells you which query parameters you can use in `GET /{PROBLEM_UID}/instance_info`, where range filters use the `__geq` and `__leq` suffixes (e.g., `weight_capacity_ratio__geq=0.1`) for minimum and maximum values, respectively, and boolean filters are simply added as query parameters:
-    ```json
-    {'problem_uid': 'knapsack',
-    'range_filters': [{'field_name': 'num_items',
-    'min_val': 11.0,
-    'max_val': 1000.0,
-    'problem_uid': 'knapsack'},
-    {'field_name': 'weight_capacity_ratio',
-    'min_val': 0.001174003923964717,
-    'max_val': 0.9983667695638433,
-    'problem_uid': 'knapsack'}],
-    'boolean_filters': ['integral'],
-    'sort_fields': ['num_items', 'weight_capacity_ratio'],
-    'display_fields': ['instance_uid',
-    'num_items',
-    'weight_capacity_ratio',
-    'integral',
-    'origin'],
-    'assets': {'thumbnail': 'png', 'image': 'png'}}
-    ```
+  - This can look like this, and tells you which query parameters you can use in
+    `GET /{PROBLEM_UID}/instance_info`, where range filters use the `__geq` and
+    `__leq` suffixes (e.g., `weight_capacity_ratio__geq=0.1`) for minimum and
+    maximum values, respectively, and boolean filters are simply added as query
+    parameters:
+  ```json
+  {
+    "problem_uid": "knapsack",
+    "range_filters": [
+      {
+        "field_name": "num_items",
+        "min_val": 11.0,
+        "max_val": 1000.0,
+        "problem_uid": "knapsack"
+      },
+      {
+        "field_name": "weight_capacity_ratio",
+        "min_val": 0.001174003923964717,
+        "max_val": 0.9983667695638433,
+        "problem_uid": "knapsack"
+      }
+    ],
+    "boolean_filters": ["integral"],
+    "sort_fields": ["num_items", "weight_capacity_ratio"],
+    "display_fields": [
+      "instance_uid",
+      "num_items",
+      "weight_capacity_ratio",
+      "integral",
+      "origin"
+    ],
+    "assets": { "thumbnail": "png", "image": "png" }
+  }
+  ```
 - `POST /{PROBLEM_UID}/instances`: Create a new instance and index it for
   querying. This is protected by an API-Key, which needs to be provided in the
   request header as `api-key`.

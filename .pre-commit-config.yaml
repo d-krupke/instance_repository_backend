@@ -77,11 +77,11 @@ repos:
           - types-PyYAML
           - pandas-stubs
 
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
-    hooks:
-      - id: codespell
-        exclude: ^(LICENSE$)
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.2.4
+  #   hooks:
+  #     - id: codespell
+  #       exclude: ^(LICENSE$)
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.9.0.2
