@@ -1,8 +1,9 @@
 import io
+import os
 import tarfile
 
 import requests
-from config import PROBLEM_UID as UNCAP_PROBLEM_UID
+from config import PROBLEM_UID
 from config import FacilityLocationInstance
 
 from connector import Connector
@@ -193,7 +194,9 @@ def parse_flp_instance(
 
 if __name__ == "__main__":
     # For the local example configuration
-
+    server_url = os.environ.get("BASE_URL", "http://127.0.0.1")
+    problem_uid = os.environ.get("PROBLEM_UID", PROBLEM_UID)
+    api_key = os.environ.get("API_KEY", "3456345-456-456")
     base_url = "https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data/bench/"
     lib_files = [
         "BildeKrarup.tgz",
@@ -215,9 +218,9 @@ if __name__ == "__main__":
     ]
 
     uncap_connector = Connector(
-        base_url="http://127.0.0.1",
-        problem_uid=UNCAP_PROBLEM_UID,
-        api_key=API_KEY,
+        base_url=server_url,
+        problem_uid=problem_uid,
+        api_key=api_key,
     )
     for lib_file in lib_files:
         process_source_lib(base_url, lib_file, uncap_connector)

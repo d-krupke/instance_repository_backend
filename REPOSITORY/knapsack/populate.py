@@ -13,7 +13,7 @@ import zipfile
 import logging
 import requests
 
-from config import KnapsackInstance
+from config import KnapsackInstance, PROBLEM_UID
 from connector import Connector
 
 # Configure logging
@@ -89,7 +89,7 @@ def find_instance_files(root_dir: Path) -> list[Path]:
 def main() -> None:
     # Configuration via environment variables
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1")
-    problem_uid = os.environ.get("PROBLEM_UID", "knapsack")
+    problem_uid = os.environ.get("PROBLEM_UID", PROBLEM_UID)
     api_key = os.environ.get("API_KEY", "3456345-456-456")
     zip_url = os.environ.get(
         "ZIP_URL",

@@ -1,8 +1,9 @@
 import io
+import os
 import tarfile
 
 import requests
-from config import PROBLEM_UID as CAP_PROBLEM_UID
+from config import PROBLEM_UID
 from config import CapacitatedFacilityLocationInstance
 
 from connector import Connector
@@ -217,9 +218,9 @@ if __name__ == "__main__":
     ]
 
     cap_connector = Connector(
-        base_url="http://127.0.0.1",
-        problem_uid=CAP_PROBLEM_UID,
-        api_key=API_KEY,
+        base_url=os.environ.get("BASE_URL", "http://127.0.0.1"),
+        problem_uid=os.environ.get("PROBLEM_UID", PROBLEM_UID),
+        api_key=os.environ.get("API_KEY", "3456345-456-456"),
     )
     for lib_file in lib_files:
         process_source_lib(base_url, lib_file, cap_connector)
