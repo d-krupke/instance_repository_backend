@@ -2,12 +2,14 @@ from .security import verify_api_key
 
 
 from .asset_repository import AssetRepository
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 from fastapi import APIRouter, Depends, File, UploadFile
 
 
 def build_asset_routes(
-    router: APIRouter, problem_info: ProblemInfo, asset_repository: AssetRepository
+    router: APIRouter,
+    problem_info: InternalProblemInfo,
+    asset_repository: AssetRepository,
 ):
     @router.post("/assets/{asset_class}/{instance_uid:path}")
     def add_asset(

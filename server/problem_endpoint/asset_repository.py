@@ -2,11 +2,11 @@ from pathlib import Path
 
 from .safe_file_operations import SafeFileOperations
 from .instance_repository import check_uid_pattern
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 
 
 class AssetRepository:
-    def __init__(self, problem_info: ProblemInfo):
+    def __init__(self, problem_info: InternalProblemInfo):
         self.problem_info = problem_info
         self.root = problem_info.assets_root
         self._safe_file_ops = SafeFileOperations(self.root)

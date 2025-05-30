@@ -55,6 +55,9 @@ class Cvrp2dInstance(BaseModel):
 PROBLEM_UID = "cvrp_2d"
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 
+PROBLEM_NAME = "Capacitated Vehicle Routing Problem (2D)"
+PROBLEM_DESCRIPTION = "A capacitated vehicle routing problem (CVRP) where vehicles must service a set of customers with known demands from a central depot, minimizing the total distance traveled while respecting vehicle capacity constraints. In the 2D variant, customers and the depot are represented in a two-dimensional space with coordinates, where the distances are given by the euclidean distance."
+
 INSTANCE_SCHEMA = Cvrp2dInstance
 
 #   TODO : Not sure for the range and sort filters..what exactly to keep

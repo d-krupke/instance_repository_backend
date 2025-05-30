@@ -4,12 +4,12 @@ from sqlmodel.main import SQLModelMetaclass
 import sqlmodel
 
 from .instance_repository import check_uid_pattern
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 import logging
 
 
 class SolutionIndex:
-    def __init__(self, problem_info: ProblemInfo):
+    def __init__(self, problem_info: InternalProblemInfo):
         self.problem_info = problem_info
         self.IndexTable = self._generate_index_table()
         self.PaginatedResponse = self._generate_paginated_response()

@@ -8,8 +8,6 @@ from config import FacilityLocationInstance
 
 from connector import Connector
 
-API_KEY = "3456345-456-456"
-
 
 def _process_line(linebytes: bytes) -> str:
     return linebytes.decode().strip().removesuffix(".")

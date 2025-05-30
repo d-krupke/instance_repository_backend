@@ -5,7 +5,16 @@ from pydantic import BaseModel, Field
 
 
 class ProblemInfo(BaseModel):
+    """
+    Base class for problem information that will be json serializable and discoverable from an endpoint.
+    """
+
     problem_uid: str = Field(..., description="The unique identifier of the problem")
+    problem_name: str = Field(..., description="A human-readable name of the problem")
+    problem_description: str | None = Field(
+        default=None,
+        description="A human-readable description of the problem. This can be used to provide more information about the problem.",
+    )
     uid_attribute: str = Field(
         default="instance_uid",
         description="The attribute of the instance that contains the unique identifier",
@@ -26,31 +35,13 @@ class ProblemInfo(BaseModel):
         default_factory=list,
         description="The fields that should be displayed in an overview of the instances and, thus, must be quick to access.",
     )
-    instance_model: Type[BaseModel] = Field(
-        ..., description="The Pydantic model of the instance"
-    )
-    solution_model: Type[BaseModel] | None = Field(
-        default=None, description="The Pydantic model of the solution"
-    )
-    assets_root: Path = Field(
-        ...,
-        description="The path to the directory of the assets for storage.",
-    )
     assets_url_root: str = Field(
         ...,
         description="The URL root of the assets via which external users can access the assets.",
     )
-    instances_root: Path = Field(
-        ...,
-        description="The path to the directory of the instances for storage.",
-    )
     instances_url_root: str = Field(
         ...,
         description="The URL root of the instances via which external users can access the instances.",
-    )
-    solutions_root: Path = Field(
-        ...,
-        description="The path to the directory of the solutions for storage.",
     )
     solutions_url_root: str = Field(
         ...,
@@ -86,6 +77,51 @@ class ProblemInfo(BaseModel):
     )
 
 
+class InternalProblemInfo(ProblemInfo):
+    """
+    Class that contains the information about a problem.
+    This class is used to discover the problem and its instances.
+    It is also used to validate the problem information.
+    """
+
+    instance_model: Type[BaseModel] = Field(
+        ..., description="The Pydantic model of the instance"
+    )
+    solution_model: Type[BaseModel] | None = Field(
+        default=None, description="The Pydantic model of the solution"
+    )
+    assets_root: Path = Field(
+        ...,
+        description="The path to the directory of the assets for storage.",
+    )
+    solutions_root: Path = Field(
+        ...,
+        description="The path to the directory of the solutions for storage.",
+    )
+    instances_root: Path = Field(
+        ...,
+        description="The path to the directory of the instances for storage.",
+    )
+
+    def get_serializable_base(self) -> ProblemInfo:
+        """
+        Returns a ProblemInfoBase instance that can be serialized to JSON.
+        This is used for the problem discovery endpoint.
+        """
+        return ProblemInfo(
+            **self.model_dump(
+                mode="json",
+                exclude={
+                    "instance_model",
+                    "solution_model",
+                    "assets_root",
+                    "solutions_root",
+                    "instances_root",
+                },
+            )
+        )
+
+
 def is_valid_postfix(postfix: str) -> bool:
     """
     Check if the postfix is valid.
@@ -93,7 +129,7 @@ def is_valid_postfix(postfix: str) -> bool:
     return all(c.isalnum() or c in "_" for c in postfix)
 
 
-def load_problem_info_from_file(path: Path) -> ProblemInfo:
+def load_problem_info_from_file(path: Path) -> InternalProblemInfo:
     """
     Load the problem information from a Python file.
     """
@@ -112,6 +148,14 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
     problem_uid = problem_vars.get("PROBLEM_UID")
     if problem_uid is None:
         raise ValueError("No PROBLEM_UID found in the file")
+    # Problem name and description
+    problem_name = problem_vars.get("PROBLEM_NAME", problem_uid)
+    problem_description = problem_vars.get("PROBLEM_DESCRIPTION", None)
+    if not isinstance(problem_name, str):
+        raise ValueError("PROBLEM_NAME must be a string")
+    if problem_description is not None and not isinstance(problem_description, str):
+        raise ValueError("PROBLEM_DESCRIPTION must be a string or None")
+
     # The instance schema should be in `INSTANCE_SCHEMA`
     instance_schema = problem_vars.get("INSTANCE_SCHEMA")
     if instance_schema is None:
@@ -155,8 +199,10 @@ def load_problem_info_from_file(path: Path) -> ProblemInfo:
     # Create the ProblemInfo instance
     url_root = os.getenv("IRB_REPOSITORY_URL", "/").rstrip("/")
     subpath_str = str(subpath).rstrip("/")
-    problem_info = ProblemInfo(
+    problem_info = InternalProblemInfo(
         instances_root=path / "instances",
+        problem_name=problem_name,
+        problem_description=problem_description,
         instances_url_root=f"{url_root}/{subpath_str}/instances/",
         solutions_root=path / "solutions",
         solutions_url_root=f"{url_root}/{subpath_str}/solutions/",

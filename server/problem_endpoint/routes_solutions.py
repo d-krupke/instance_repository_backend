@@ -10,7 +10,7 @@ from ..database import get_db
 from .solution_index import SolutionIndex
 from .solution_repository import SolutionRepository
 
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 from .instance_index import InstanceIndex
 from fastapi import APIRouter, Depends, HTTPException
 from .models import PaginatedRequest
@@ -18,7 +18,7 @@ from .models import PaginatedRequest
 
 def build_solution_routes(
     router: APIRouter,
-    problem_info: ProblemInfo,
+    problem_info: InternalProblemInfo,
     instance_index: InstanceIndex,
     solution_repository: SolutionRepository,
     solution_index: SolutionIndex,

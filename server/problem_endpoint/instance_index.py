@@ -7,7 +7,7 @@ from .instance_query_schema import _generate_query_schema
 
 from .instance_index_table import _generate_problem_instance_index_table
 
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 
 from .models import RangeQueryBounds, PaginatedInstanceResponse
 
@@ -17,7 +17,7 @@ class InstanceIndex:
     Create a query index for benchmark instances of a problem.
     """
 
-    def __init__(self, problem_info: ProblemInfo):
+    def __init__(self, problem_info: InternalProblemInfo):
         self.problem_info = problem_info
         self.IndexTable = _generate_problem_instance_index_table(problem_info)
         self.QuerySchema = _generate_query_schema(problem_info)

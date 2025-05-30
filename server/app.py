@@ -5,6 +5,7 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from server.app_config import PROBLEMS
+from server.problem_endpoint.discovery import build_discovery_route
 
 
 logging.basicConfig(
@@ -34,3 +35,4 @@ app.add_middleware(
 
 for problem in PROBLEMS:
     problem.build_routes(app)
+build_discovery_route(app, PROBLEMS)

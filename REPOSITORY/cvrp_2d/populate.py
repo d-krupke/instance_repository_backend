@@ -1,9 +1,8 @@
 import logging
 import os
-from config import PROBLEM_UID, Cvrp2dInstance, Customer, Depot
 import lzma
+from config import PROBLEM_UID, Cvrp2dInstance, Customer, Depot
 from pathlib import Path
-from uuid import uuid4
 import urllib.request
 from zipfile import ZipFile
 from connector import Connector
@@ -12,24 +11,42 @@ from connector import Connector
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-CVRP_ZIP_URL = "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-A.zip"  # <- Can be changed according to the set
-CVRP_ZIP_PATH = Path("data/cvrp2d_benchmarks.zip")
-CVRP_EXTRACT_DIR = Path("data/cvrp2d_benchmarks")
+# List of CVRP benchmark ZIP URLs
+CVRP_ZIP_URLS = [
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-A.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-B.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-E.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-F.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-M.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-P.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-CMT.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-tai.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-Golden.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-Li.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-X.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-XXL.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-D.zip",
+    "http://vrp.galgos.inf.puc-rio.br/media/com_vrp/instances/Vrp-Set-XML100.zip",
+]
 
 
-def download_and_extract_cvrp_zip():
-    if not CVRP_ZIP_PATH.exists():
-        print(f"Downloading CVRP benchmark zip from {CVRP_ZIP_URL}")
-        CVRP_ZIP_PATH.parent.mkdir(parents=True, exist_ok=True)
-        urllib.request.urlretrieve(CVRP_ZIP_URL, CVRP_ZIP_PATH)
+def download_and_extract_cvrp_zip(zip_url: str, extract_root: Path):
+    zip_name = zip_url.split("/")[-1]
+    set_name = zip_name.replace(".zip", "")
+    zip_path = extract_root / f"{set_name}.zip"
+    extract_dir = extract_root / set_name
 
-    if not CVRP_EXTRACT_DIR.exists():
-        print(f"Extracting {CVRP_ZIP_PATH} to {CVRP_EXTRACT_DIR}")
-        with ZipFile(CVRP_ZIP_PATH, "r") as zip_ref:
-            zip_ref.extractall(CVRP_EXTRACT_DIR)
+    if not zip_path.exists():
+        logger.info(f"Downloading {zip_name} from {zip_url}")
+        extract_root.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(zip_url, zip_path)
 
+    if not extract_dir.exists():
+        logger.info(f"Extracting {zip_path} to {extract_dir}")
+        with ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_dir)
 
-download_and_extract_cvrp_zip()
+    return extract_dir, set_name
 
 
 def write_to_json_xz(data: Cvrp2dInstance):
@@ -39,8 +56,8 @@ def write_to_json_xz(data: Cvrp2dInstance):
         f.write(data.model_dump_json(indent=2))
 
 
-def parse_cvrp_2d(file_path: str, connector: Connector) -> None:
-    file_path = Path(file_path)  # converting string to path object
+def parse_cvrp_2d(file_path: str, connector: Connector, set_name: str) -> None:
+    file_path = Path(file_path)
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -113,13 +130,14 @@ def parse_cvrp_2d(file_path: str, connector: Connector) -> None:
         customer_id += 1
 
     instance = Cvrp2dInstance(
-        instance_uid=f"{file_path.stem}_{uuid4().hex[:8]}",
-        origin="cvrp_benchmark_2d",
+        instance_uid=f"CVRPLIB/{set_name}/{file_path.stem}",
+        origin=f"{zip_url} - CVRP benchmark instance from {set_name}",
         vehicle_capacity=vehicle_capacity,
         depot=depot,
         customers=customers,
         num_customers=len(customers),
     )
+
     connector.upload_instance(instance)
 
 
@@ -130,12 +148,20 @@ if __name__ == "__main__":
         api_key=os.environ.get("API_KEY", "3456345-456-456"),
     )
 
-    folder = CVRP_EXTRACT_DIR
-    for file_path in folder.rglob("*.vrp"):
-        try:
-            print(f"Processing: {file_path.name}")
-            parse_cvrp_2d(str(file_path), connector=connector)
-        except Exception as e:
-            print(f" ERROR processing {file_path.name}: {e}")
+    extract_root = Path("data/cvrp2d_benchmarks")
 
-    print("All CVRP_2D instances processed.")
+    for zip_url in CVRP_ZIP_URLS:
+        try:
+            extract_dir, set_name = download_and_extract_cvrp_zip(zip_url, extract_root)
+            for file_path in extract_dir.rglob("*.vrp"):
+                try:
+                    print(f"Processing {file_path.name} from {set_name}")
+                    parse_cvrp_2d(
+                        str(file_path), connector=connector, set_name=set_name
+                    )
+                except Exception as e:
+                    print(f"ERROR processing {file_path.name}: {e}")
+        except Exception as e:
+            print(f"ERROR with {zip_url}: {e}")
+
+    print("All CVRP_2D benchmark sets processed.")

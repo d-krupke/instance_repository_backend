@@ -1,11 +1,11 @@
 from pathlib import Path
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 from .instance_repository import LocalFileSystemWithCompression, check_uid_pattern
 import hashlib
 
 
 class SolutionRepository:
-    def __init__(self, problem_info: ProblemInfo):
+    def __init__(self, problem_info: InternalProblemInfo):
         self.problem_info = problem_info
         self.file_system = LocalFileSystemWithCompression(problem_info.solutions_root)
         if self.problem_info.solution_model is None:

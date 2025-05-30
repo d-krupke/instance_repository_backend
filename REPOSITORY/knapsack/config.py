@@ -123,6 +123,15 @@ class KnapsackSolution(BaseModel):
 # Unique identifier for the problem
 PROBLEM_UID = "knapsack"
 
+# Human-readable name and description of the problem
+# This is optional but can help with generic UIs.
+PROBLEM_NAME = "Knapsack Problem"
+PROBLEM_DESCRIPTION = (
+    "The Knapsack Problem involves selecting a subset of items "
+    "to maximize total value without exceeding a given weight capacity. "
+    "This configuration defines the structure of instances and solutions for the problem."
+)
+
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 

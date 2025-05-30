@@ -87,6 +87,12 @@ class CapacitatedFacilityLocationSolution(BaseModel):
 
 # Unique identifier for the problem
 PROBLEM_UID = "capacitated-facility-location"
+PROBLEM_NAME = "Capacitated Facility Location Problem"
+PROBLEM_DESCRIPTION = (
+    "The Capacitated Facility Location Problem (CFLP) involves determining the optimal "
+    "locations for facilities to minimize costs while satisfying the demand of cities, "
+    "given capacity constraints on the facilities."
+)
 
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"

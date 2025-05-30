@@ -119,6 +119,15 @@ class JobShopSolution(BaseModel):
 # Unique identifier for the problem
 PROBLEM_UID = "job_shop"
 
+PROBLEM_NAME = "Job Shop Scheduling Problem"
+PROBLEM_DESCRIPTION = (
+    "The Job Shop Scheduling Problem (JSSP) involves scheduling a set of jobs, "
+    "each consisting of a sequence of operations, on a set of machines. "
+    "The goal is to minimize the makespan, which is the total time required to complete all jobs."
+    " Each operation must be processed on a specific machine for a defined processing time, "
+    "and jobs may have release times that dictate when they can start processing."
+)
+
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 

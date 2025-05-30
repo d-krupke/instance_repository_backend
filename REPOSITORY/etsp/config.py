@@ -87,6 +87,9 @@ class EuclideanTravelingSalesmanSolution(BaseModel):
 # Unique identifier for the problem
 PROBLEM_UID = "euclidean-tsp"
 
+PROBLEM_NAME = "Euclidean Traveling Salesman Problem (2D)"
+PROBLEM_DESCRIPTION = "The Euclidean Traveling Salesman Problem is a classic optimization problem where the goal is to find the shortest possible route that visits a set of points (cities) exactly once and returns to the origin point. The distance between points is calculated using the Euclidean distance formula."
+
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 

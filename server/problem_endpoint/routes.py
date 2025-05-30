@@ -16,7 +16,7 @@ from .solution_index import SolutionIndex
 from .solution_repository import SolutionRepository
 
 from .asset_repository import AssetRepository
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 from .instance_index import InstanceIndex
 from .instance_repository import InstanceRepository
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException
 
 def build_routes_for_problem(
     app: FastAPI,
-    problem_info: ProblemInfo,
+    problem_info: InternalProblemInfo,
     instance_repository: InstanceRepository,
     instance_index: InstanceIndex,
     solution_repository: SolutionRepository | None,

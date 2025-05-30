@@ -73,6 +73,7 @@ from pydantic import (
     NonNegativeInt,
     PositiveFloat,
     PositiveInt,
+    model_validator,
 )
 
 
@@ -91,12 +92,28 @@ class KnapsackInstance(BaseModel):
         ...,
         description=(
             "The ratio of the total weight of all items to the knapsack capacity. "
-            "Calculated as the sum of item weights divided by the knapsack capacity."
+            "Calculated as the sum of item weights divided by knapsack capacity."
         ),
     )
-    integral: bool = Field(
+
+    @staticmethod
+    def calculate_weight_capacity_ratio(
+        item_weights: list[NonNegativeFloat | NonNegativeInt],
+        capacity: NonNegativeFloat | NonNegativeInt,
+    ) -> PositiveFloat:
+        """Calculate the weight to capacity ratio."""
+        if capacity == 0:
+            return float(
+                "inf"
+            )  # Avoid division by zero, return infinity if capacity is zero
+        total_weight = sum(item_weights)
+        return total_weight / capacity
+
+    is_integral: bool = Field(
         default=False,
-        description="Specifies if the capacity, values, and weights are integral.",
+        description="Specifies if the capacity, values, and weights are integral. "
+        "When set to True, all item values, weights, and the capacity must be integers, "
+        "and validation will enforce this constraint. Defaults to False.",
     )
 
     # Instance data
@@ -109,8 +126,41 @@ class KnapsackInstance(BaseModel):
     item_weights: list[NonNegativeFloat | NonNegativeInt] = Field(
         ..., description="The weights assigned to each item"
     )
-    # NOTE: For more complex instances, you can use a hierarchy of models.
-    # Just specify the root model below in the INSTANCE_SCHEMA variable.
+
+    schema_version: int = Field(
+        default=0,
+        description="Schema version of the instance. If the schema changes, this will be incremented.",
+    )
+
+    # --------------------------------------------
+    # Additional validation methods
+    # --------------------------------------------
+
+    @model_validator(mode="after")
+    def validate_instance(self) -> "KnapsackInstance":
+        if len(self.item_values) != self.num_items:
+            raise ValueError(
+                f"Expected {self.num_items} item values, got {len(self.item_values)}"
+            )
+        if len(self.item_weights) != self.num_items:
+            raise ValueError(
+                f"Expected {self.num_items} item weights, got {len(self.item_weights)}"
+            )
+        if self.is_integral:
+
+            def check_integral(value):
+                return isinstance(value, int) or (
+                    isinstance(value, float) and value.is_integer()
+                )
+
+            if not all(
+                check_integral(v)
+                for v in self.item_values + self.item_weights + [self.capacity]
+            ):
+                raise ValueError(
+                    "All item values, weights, and capacity must be integers when integral is True."
+                )
+        return self
 
 
 class KnapsackSolution(BaseModel):
@@ -130,33 +180,49 @@ class KnapsackSolution(BaseModel):
         ..., description="Indices of the selected items in the solution"
     )
 
+    schema_version: int = Field(
+        default=0,
+        description="Schema version of the instance. If the schema changes, this will be incremented.",
+    )
+
 
 # Configuration constants for the knapsack problem
 
 # Unique identifier for the problem
 PROBLEM_UID = "knapsack"
 
+# Human-readable name and description of the problem
+# This is optional but can help with generic UIs.
+PROBLEM_NAME = "Knapsack Problem"
+PROBLEM_DESCRIPTION = (
+    "The Knapsack Problem involves selecting a subset of items "
+    "to maximize total value without exceeding a given weight capacity. "
+    "This configuration defines the structure of instances and solutions for the problem."
+)
+
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 
 # Schema definitions
 INSTANCE_SCHEMA = KnapsackInstance
-SOLUTION_SCHEMA = KnapsackSolution  # Set to None if solutions are not supported
+SOLUTION_SCHEMA = (
+    KnapsackSolution  # Optional: Set to None if solutions are not supported
+)
 
 # Filtering and sorting configurations
 RANGE_FILTERS = [
     "num_items",
     "weight_capacity_ratio",
 ]  # Fields usable for range filters
-BOOLEAN_FILTERS = ["integral"]  # Boolean fields usable for filters
+BOOLEAN_FILTERS = ["is_integral"]  # Boolean fields usable for filters
 SORT_FIELDS = ["num_items", "weight_capacity_ratio"]  # Fields usable for sorting
 
-# Fields for display in instance overviews
+# Fields for display purposes in instance overviews
 DISPLAY_FIELDS = [
     "instance_uid",
     "num_items",
     "weight_capacity_ratio",
-    "integral",
+    "is_integral",
     "origin",
 ]
 
@@ -166,7 +232,7 @@ ASSETS = {"thumbnail": "png", "image": "png"}
 # Solution-specific configurations
 SOLUTION_SORT_ATTRIBUTES = [
     "objective"
-]  # Fields for sorting solutions; a "-" prefix indicates descending order.
+]  # Fields for sorting solutions. A "-" prefix indicates descending order.
 SOLUTION_DISPLAY_FIELDS = ["objective", "authors"]  # Fields to display for solutions
 ```
 
@@ -270,6 +336,8 @@ After removing the corrupted volume, restart the services to rebuild the index.
 
 The backend exposes several routes for managing instances and solutions.
 
+- `GET /` will list all available problem classes. This is useful for
+  discovering the available problems in the repository.
 - `GET /{PROBLEM_UID}/instances/{INSTANCE_UID}`: Retrieve a specific instance
   for a problem by its UID.
 - `GET /{PROBLEM_UID}/instance_info`: Query instance metadata with pagination

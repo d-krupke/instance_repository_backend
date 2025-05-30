@@ -99,6 +99,13 @@ class FacilityLocationSolution(BaseModel):
 # Unique identifier for the problem
 PROBLEM_UID = "facility-location"
 
+PROBLEM_NAME = "Facility Location Problem"
+PROBLEM_DESCRIPTION = (
+    "The Facility Location Problem (FLP) involves determining the optimal locations for facilities "
+    "to minimize costs while satisfying the demand of cities. It is a fundamental problem in operations research "
+    "and logistics, with applications in supply chain management, telecommunications, and urban planning."
+)
+
 # Shared attribute name for instances and solutions
 INSTANCE_UID_ATTRIBUTE = "instance_uid"
 

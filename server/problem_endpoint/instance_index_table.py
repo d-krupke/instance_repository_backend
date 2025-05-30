@@ -4,11 +4,11 @@ from typing import Type
 import sqlmodel
 from sqlmodel.main import SQLModelMetaclass
 
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 
 
 def _generate_problem_instance_index_table(
-    problem_info: ProblemInfo,
+    problem_info: InternalProblemInfo,
 ) -> Type[sqlmodel.SQLModel]:
     """
     Creates a SQLModel class that represents the index table for the instances of the problem.

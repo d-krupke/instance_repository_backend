@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Type, TypeVar, Generic
 from pydantic import BaseModel
 
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 from .safe_file_operations import SafeFileOperations
 
 # Define a generic type variable for the instance model
@@ -116,7 +116,7 @@ class InstanceRepository(Generic[T]):
     Note that this may be replaced by a cloud storage or a database later.
     """
 
-    def __init__(self, problem_info: ProblemInfo):
+    def __init__(self, problem_info: InternalProblemInfo):
         self.problem_info = problem_info
         self.instance_model: Type[T] = problem_info.instance_model  # type: ignore
         self.file_system = LocalFileSystemWithCompression(problem_info.instances_root)

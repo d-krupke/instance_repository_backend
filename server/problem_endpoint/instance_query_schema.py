@@ -4,10 +4,10 @@ from pydantic import BaseModel, Field
 from typing import Type
 
 
-from .problem_info import ProblemInfo
+from .problem_info import InternalProblemInfo
 
 
-def _generate_query_schema(problem_info: ProblemInfo) -> Type[BaseModel]:
+def _generate_query_schema(problem_info: InternalProblemInfo) -> Type[BaseModel]:
     """
     Generate a query model for the instances of the problem.
     This model can then be used to validate the query parameters of the API endpoint,
