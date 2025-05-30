@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
@@ -19,6 +20,10 @@ def build_discovery_route(app: FastAPI, problems: list[ProblemEndpoint]):
     """
 
     router = app.router
+    logging.info(
+        "Building discovery route for available problems: %s",
+        [problem.problem_info.problem_uid for problem in problems],
+    )
 
     @router.get("/", response_model=ServerOverview)
     def discover_problems() -> ServerOverview:

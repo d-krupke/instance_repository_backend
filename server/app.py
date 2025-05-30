@@ -16,8 +16,10 @@ logging.basicConfig(
 
 # read from environment variable
 IRB_ROOT = os.getenv("IRB_ROOT", "/")
+logging.info("IRB_ROOT set to '%s'", IRB_ROOT)
 app = FastAPI(root_path=IRB_ROOT)
 IRB_DOMAIN = os.getenv("IRB_DOMAIN", "")
+logging.info("IRB_DOMAIN set to '%s'", IRB_DOMAIN)
 allowed_origins = [
     "http://localhost",  # Allow requests from localhost
     "http://localhost:8080",  # Allow requests from localhost with port 8080
