@@ -250,8 +250,8 @@ API.
 
 You can also directly browse the repository at
 [http://127.0.0.1/static/](http://127.0.0.1/static/). Adapt the
-`docker-compose.yml` file to fit your requirements, especially regarding access
-keys.
+`docker-compose.dev.yml` file to fit your requirements, especially regarding
+access keys.
 
 To test the setup, both example problems in this repository include a
 `generate.py` script that generates random instances.
@@ -269,9 +269,9 @@ The project is organized as follows:
 - **`.gitignore`**: Lists files to ignore when committing to the Git repository.
 - **`.pre-commit-config.yaml`**: Configuration for pre-commit hooks, helping to
   maintain code quality.
-- **`docker-compose.yml`**: Defines the Docker services. You will likely need to
-  edit this for your specific use case (e.g., environment variables, access
-  keys, domain).
+- **`docker-compose.dev.yml`**: Defines the Docker services. You will likely
+  need to edit this for your specific use case (e.g., environment variables,
+  access keys, domain).
 - **`Dockerfile`**: Builds the FastAPI server.
 - **`entrypoint.py`**: Entrypoint script for the Docker container. It indexes
   all instances and solutions on startup before running the FastAPI server.
@@ -287,8 +287,8 @@ The project is organized as follows:
 2. **Adapt the `REPOSITORY/` directory** to your needs. You can base your work
    on one of the example problem configurations and remove the ones you don’t
    need.
-3. **Adjust `docker-compose.yml`** to suit your setup. By default, it’s
-   configured for local use only. In particular, update the `environment`
+3. **Copy and adjust `docker-compose.dev.yml`** to suit your setup. By default,
+   it’s configured for local use only. In particular, update the `environment`
    section:
    - Change the access key to a secure value. This project provides only a very
      basic access key mechanism.
